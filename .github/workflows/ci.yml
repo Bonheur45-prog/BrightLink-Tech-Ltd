@@ -75,6 +75,8 @@ jobs:
           check /admin/login 200
           check /admin/settings 307
           check /admin/header 307
+          check /admin/services 307
+          check /admin/api/export/leads 401
           check /sitemap.xml 200
           # the home page must show the seeded company details and the chosen font variables
           curl -s http://localhost:3000/ | grep -q -- '--font-heading' || { echo "::error title=Smoke::home page has no --font-heading"; fail=1; }

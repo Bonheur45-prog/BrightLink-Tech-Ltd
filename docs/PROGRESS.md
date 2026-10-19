@@ -7,7 +7,7 @@ Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github
 | 1 | Foundation: schema, auth, admin shell, users, audit log, R2 media library | done |
 | 2 | Site settings, header, footer, SEO defaults, languages, curated font list | **done (branch phase-2)** |
 
-| 3 | Collections: services, projects, clients, team, leads, subscribers, trash | next |
+| 3 | Collections: services, projects, clients, team, leads, subscribers, trash | **done (branch phase-3)** |
 | 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | |
 | 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | |
 | 6 | Public site reconnected: caching, parallax, smooth scroll, image sizes | |
@@ -65,6 +65,19 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
 - Smooth-scroll/parallax switches are stored but only take effect in Phase 6. Locale routing (`/fr`, `/rw`) is Phase 6;
   until then the site renders English.
 - CI: migrate deploy, seed ×2, typecheck, lint, 19 unit tests, build, start the standalone server and check key pages.
+
+## What Phase 3 added
+- `/admin/services`, `/admin/projects`, `/admin/clients`, `/admin/team`: list → create by name → editor (texts per
+  language in tabs, lists typed one per line, cover/logo/photo via MediaPicker, project gallery with reorder, status
+  Draft/Published, order, show-on-home). Slug renames create a `Redirect` (chains flattened). Service page *sections*
+  (the `content` JSON) are left for the Phase 4 page builder.
+- `/admin/messages` (filter by status, detail, mark new/contacted/closed, delete, reply/call links) and
+  `/admin/subscribers` (remove/add back). CSV downloads at `/admin/api/export/leads|subscribers` (formula-safe).
+- `/admin/trash`: services, projects, clients, team; restore (as draft) or delete for good (photos are kept).
+- Seed now also creates the starter services, projects and clients (only into empty tables).
+- Actions: `src/app/admin/(cms)/collection-actions.ts`; validation: `src/lib/cms/collections-validation.ts`;
+  shared UI: `src/app/admin/(cms)/_collections/shared.tsx`, `src/components/admin/EntityForm`.
+- Public pages still use starter content for these until Phase 6. Contact-form email notifications are not wired yet.
 
 ## Not tested in Phase 2 (do these yourself)
 - The new admin screens in a real browser (only typechecked/built; layout untested), the MediaPicker against real R2.
