@@ -1,5 +1,7 @@
 import { cache } from 'react'
 
+import { loadFooter, loadHeader, loadSiteSettings } from './site'
+
 import { normalizeProjectDetail, normalizeServiceDetail } from './normalize'
 import { DEFAULT_BLOG_PAGE, STARTER_CATEGORIES, STARTER_POSTS } from './blogDefaults'
 import { DEFAULT_CONTACT_PAGE } from './contactDefaults'
@@ -7,10 +9,7 @@ import { DEFAULT_PROJECTS_PAGE } from './projectDefaults'
 import { DEFAULT_SERVICES_PAGE } from './serviceDefaults'
 import {
   DEFAULT_ABOUT,
-  DEFAULT_FOOTER,
-  DEFAULT_HEADER,
   DEFAULT_HOME,
-  DEFAULT_SETTINGS,
   STARTER_CLIENTS,
   STARTER_PROJECTS,
   STARTER_PROJECTS_RAW as STARTER_RAW_PROJECTS,
@@ -47,10 +46,11 @@ export type * from './types'
  * looks the same as before but is NOT editable until Phase 6 reconnects these helpers to the database.
  * Keep the function names and return types: the pages already depend on them.
  */
-export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => DEFAULT_SETTINGS)
-export const getHeader = cache(async (): Promise<HeaderData> => DEFAULT_HEADER)
+// Phase 2: settings, header and footer now come from the database (see ./site.ts).
+export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => loadSiteSettings('en'))
+export const getHeader = cache(async (): Promise<HeaderData> => loadHeader('en'))
 export const getHomePage = cache(async (): Promise<HomePageData> => DEFAULT_HOME)
-export const getFooter = cache(async (): Promise<FooterData> => DEFAULT_FOOTER)
+export const getFooter = cache(async (): Promise<FooterData> => loadFooter('en'))
 export const getServices = cache(async (): Promise<ServiceItem[]> => STARTER_SERVICES)
 export const getProjects = cache(async (limit = 50): Promise<ProjectItem[]> => STARTER_PROJECTS.slice(0, limit))
 export const getClients = cache(async (): Promise<ClientItem[]> => STARTER_CLIENTS)

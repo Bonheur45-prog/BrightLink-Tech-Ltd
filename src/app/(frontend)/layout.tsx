@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Outfit } from 'next/font/google'
-import type { ReactNode } from 'react'
+import type { CSSProperties, ReactNode } from 'react'
 
 import '@/styles/globals.css'
 import { Footer } from '@/components/layout/Footer'
@@ -8,9 +7,9 @@ import { Header } from '@/components/layout/Header'
 import { JsonLd } from '@/components/ui/JsonLd'
 import { getSiteSettings } from '@/lib/content'
 import { getServerUrl, organizationJsonLd, websiteJsonLd } from '@/lib/seo'
+import { fontVar, isFontKey } from '@/lib/fonts'
+import { allFontVariables } from '@/styles/fonts'
 
-const inter = Inter({ subsets: ['latin'], variable: '--font-inter', display: 'swap' })
-const outfit = Outfit({ subsets: ['latin'], variable: '--font-outfit', display: 'swap' })
 
 // Content comes from the CMS and is revalidated the moment an editor saves in /admin.
 export const dynamic = 'force-dynamic'
@@ -46,9 +45,14 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function FrontendLayout({ children }: { children: ReactNode }) {
   const settings = await getSiteSettings()
+  // Site-wide fonts chosen in Site settings. Only these two are used by the page, so only their files download.
+  const fonts = {
+    '--font-heading': `var(${fontVar(isFontKey(settings.headingFont) ? settings.headingFont : 'outfit')})`,
+    '--font-body': `var(${fontVar(isFontKey(settings.bodyFont) ? settings.bodyFont : 'inter')})`,
+  } as CSSProperties
 
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable}`}>
+    <html lang="en" className={allFontVariables} style={fonts}>
       <body>
         <JsonLd data={[organizationJsonLd(settings), websiteJsonLd(settings)]} />
         <a

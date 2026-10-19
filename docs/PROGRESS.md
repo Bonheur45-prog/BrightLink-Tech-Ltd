@@ -1,12 +1,13 @@
 # Progress and handoff
 
-Plan: 7 phases, each delivered as a full zip. Start each phase in a fresh chat: upload the latest zip and this file.
+Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github/workflows/ci.yml`) must be green before it is merged into `main` (merging to `main` deploys).
 
 | # | Phase | Status |
 |---|---|---|
-| 1 | Foundation: schema, auth, admin shell, users, audit log, R2 media library | **done (this zip)** |
-| 2 | Site settings, header, footer, SEO defaults, languages, curated font list | next |
-| 3 | Collections: services, projects, clients, team, leads, subscribers, trash | |
+| 1 | Foundation: schema, auth, admin shell, users, audit log, R2 media library | done |
+| 2 | Site settings, header, footer, SEO defaults, languages, curated font list | **done (branch phase-2)** |
+
+| 3 | Collections: services, projects, clients, team, leads, subscribers, trash | next |
 | 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | |
 | 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | |
 | 6 | Public site reconnected: caching, parallax, smooth scroll, image sizes | |
@@ -48,7 +49,27 @@ English at `/` (no prefix), other languages at `/fr`, `/rw` (Phase 6; differs fr
 Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailwind. Images: WebP only (no AVIF).
 `DATABASE_POOL_MAX` (default 5) controls the connection pool.
 
-## Next (Phase 2) — what to build
+## What Phase 2 added
+- `/admin/settings`: company, contact, socials, logos + default share image (MediaPicker), languages (en always on;
+  fr/rw switchable), per-language tagline/footer text/default SEO title+description with a Google preview, title
+  pattern (%s), Search Console code (meta tag pasted → code kept), heading/body fonts, smooth-scroll/parallax switches.
+  Saves immediately (no draft). Validation: `src/lib/cms/settings-validation.ts`.
+- `/admin/header`, `/admin/footer`: draft → publish → version history (30 kept), discard, restore. Text per language
+  (`{en,fr,rw}`, English required, others fall back). Model + checks: `src/lib/cms/globals-model.ts`; store:
+  `src/lib/cms/drafts.ts` (generic: Phase 4 adds pages to its SPEC). Shared actions: `src/app/admin/(cms)/doc-actions.ts`.
+- `MediaPicker` / `MediaField` (`src/components/admin/MediaPicker`): browse, search, page, upload-and-pick.
+- Fonts: `src/lib/fonts.ts` (8 curated keys) + `src/styles/fonts.ts` (next/font, self-hosted, preload off). Public
+  layout sets `--font-heading`/`--font-body`; Tailwind `font-display`/`font-sans` use them.
+- **Public site now reads settings, header and footer from the database** (`src/lib/content/site.ts`, cached, refreshed on
+  save/publish, starter content if the DB is down or nothing is published yet). Everything else is still starter content.
+- Smooth-scroll/parallax switches are stored but only take effect in Phase 6. Locale routing (`/fr`, `/rw`) is Phase 6;
+  until then the site renders English.
+- CI: migrate deploy, seed ×2, typecheck, lint, 19 unit tests, build, start the standalone server and check key pages.
+
+## Not tested in Phase 2 (do these yourself)
+- The new admin screens in a real browser (only typechecked/built; layout untested), the MediaPicker against real R2.
+
+## Earlier plan notes (Phase 2)
 Site settings editor (company, contact, socials, SEO defaults, languages, heading/body font from the curated list in
 `src/lib/fonts.ts` (to create), parallax/smooth-scroll switches), header and footer editors (GlobalSection drafts),
 `MediaPicker` modal (not built yet), version history UI, publish bar copied from Oak's `PublishBar`.

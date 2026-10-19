@@ -6,7 +6,7 @@ import { requireUser } from '@/lib/auth/session';
 import { refreshPublicSite } from '@/lib/cms/revalidate';
 import { prisma } from '@/lib/db';
 import { locales, type Locale } from '@/i18n/config';
-import { deleteMediaAssets, mediaUsage } from '@/lib/storage/assets';
+import { LIBRARY_PAGE_SIZE, deleteMediaAssets, listMedia, mediaUsage } from '@/lib/storage/assets';
 
 export type MediaActionResult = { ok: true } | { ok: false; error: string };
 
@@ -68,4 +68,20 @@ export async function deleteMediaForever(mediaId: string): Promise<MediaActionRe
   await deleteMediaAssets([mediaId]);
   await audit(user.id, 'media.delete', 'media', mediaId);
   return done();
+}
+
+export type PickerItem = { id: string; kind: 'IMAGE' | 'VIDEO'; thumbUrl: string | null; alt: string; width: number; height: number };
+
+/** One page of the library for the media picker. */
+export async function browseMedia(opts: { q?: string; page?: number; kind?: 'IMAGE' | 'VIDEO' }): Promise<{ items: PickerItem[]; total: number; pageSize: number }> {
+  await requireUser();
+  const q = String(opts.q ?? '').trim().slice(0, 100) || undefined;
+  const page = Math.max(1, Math.min(1000, Number(opts.page) || 1));
+  const kind = opts.kind === 'VIDEO' || opts.kind === 'IMAGE' ? opts.kind : undefined;
+  const { items, total } = await listMedia({ q, kind, page });
+  return {
+    items: items.map((m) => ({ id: m.id, kind: m.kind, thumbUrl: m.thumbUrl, alt: m.alt, width: m.width, height: m.height })),
+    total,
+    pageSize: LIBRARY_PAGE_SIZE,
+  };
 }

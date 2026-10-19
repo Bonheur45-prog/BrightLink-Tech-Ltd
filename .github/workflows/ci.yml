@@ -1,0 +1,82 @@
+# Checks every push to a branch other than main, and every pull request: database migration, seed,
+# typecheck, lint, unit tests, production build, and a quick start of the built site.
+# It never touches the VPS (deploy.yml does that, on main only).
+name: CI
+
+on:
+  push:
+    branches-ignore: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: brightlink
+          POSTGRES_PASSWORD: brightlink
+          POSTGRES_DB: brightlink
+        ports: ['5433:5432']
+        options: >-
+          --health-cmd "pg_isready -U brightlink" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      DATABASE_URL: postgresql://brightlink:brightlink@localhost:5433/brightlink?schema=public
+      SITE_URL: http://localhost:3000
+      R2_PUBLIC_HOSTNAME: media.example.com
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      # Each step keeps its output in a file and, if it fails, repeats the last lines as an error
+      # annotation, so the reason is visible on the run page (and through the API) without opening logs.
+      - name: Install
+        run: npm ci > /tmp/out.txt 2>&1 || { tail -40 /tmp/out.txt | sed 's/^/::error title=Install::/'; exit 1; }
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy > /tmp/out.txt 2>&1 || { tail -40 /tmp/out.txt | sed 's/^/::error title=Migrate::/'; exit 1; }
+
+      - name: Seed (twice, must be safe to repeat)
+        run: (npm run db:seed && npm run db:seed) > /tmp/out.txt 2>&1 || { tail -40 /tmp/out.txt | sed 's/^/::error title=Seed::/'; exit 1; }
+
+      - name: Typecheck
+        run: npm run typecheck > /tmp/out.txt 2>&1 || { tail -40 /tmp/out.txt | sed 's/^/::error title=Typecheck::/'; exit 1; }
+
+      - name: Lint
+        run: npx next lint > /tmp/out.txt 2>&1 || { grep -B2 "Error:" /tmp/out.txt | tail -40 | sed 's/^/::error title=Lint::/'; exit 1; }
+
+      - name: Unit tests
+        run: npm test > /tmp/out.txt 2>&1 || { tail -40 /tmp/out.txt | sed 's/^/::error title=Tests::/'; exit 1; }
+
+      - name: Build
+        run: npm run build > /tmp/out.txt 2>&1 || { tail -60 /tmp/out.txt | sed 's/^/::error title=Build::/'; exit 1; }
+
+      - name: Start the built site and check key pages
+        run: |
+          cp -r public .next/standalone/ && cp -r .next/static .next/standalone/.next/
+          PORT=3000 node .next/standalone/server.js > /tmp/server.txt 2>&1 &
+          for i in $(seq 1 30); do curl -sf -o /dev/null http://localhost:3000/admin/login && break; sleep 1; done
+          fail=0
+          check() { code=$(curl -s -o /tmp/page.html -w '%{http_code}' "http://localhost:3000$1"); if [ "$code" != "$2" ]; then echo "::error title=Smoke::$1 returned $code, expected $2"; fail=1; fi; }
+          check / 200
+          check /about-us 200
+          check /contact-us 200
+          check /admin/login 200
+          check /admin/settings 307
+          check /admin/header 307
+          check /sitemap.xml 200
+          # the home page must show the seeded company details and the chosen font variables
+          curl -s http://localhost:3000/ | grep -q -- '--font-heading' || { echo "::error title=Smoke::home page has no --font-heading"; fail=1; }
+          curl -s http://localhost:3000/ | grep -q 'info@brightlinkltd.com' || { echo "::error title=Smoke::home page lacks the seeded email"; fail=1; }
+          if [ $fail = 1 ]; then tail -30 /tmp/server.txt | sed 's/^/::error title=Server log::/'; exit 1; fi
