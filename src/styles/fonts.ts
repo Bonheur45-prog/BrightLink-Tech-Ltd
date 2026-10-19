@@ -1,19 +1,18 @@
 import { DM_Sans, Inter, Lora, Merriweather, Montserrat, Outfit, Playfair_Display, Poppins } from 'next/font/google';
 import type { FontKey } from '@/lib/fonts';
 
-// Self-hosted copies of the curated fonts (see src/lib/fonts.ts). `preload: false` everywhere: the
+// Self-hosted copies of the curated fonts (see src/lib/fonts.ts). `preload: false` everywhere (next/font needs literal options, so they are repeated): the
 // @font-face rules are tiny, and a file is only fetched when the page uses that font.
 // `display: swap` shows text at once in a fallback font while the chosen one arrives.
-const opts = { subsets: ['latin'] as ('latin')[], display: 'swap' as const, preload: false };
 
-const inter = Inter({ ...opts, variable: '--font-inter' });
-const outfit = Outfit({ ...opts, variable: '--font-outfit' });
-const dmSans = DM_Sans({ ...opts, variable: '--font-dm-sans' });
-const poppins = Poppins({ ...opts, weight: ['400', '500', '600', '700'], variable: '--font-poppins' });
-const montserrat = Montserrat({ ...opts, variable: '--font-montserrat' });
-const lora = Lora({ ...opts, variable: '--font-lora' });
-const merriweather = Merriweather({ ...opts, weight: ['400', '700'], variable: '--font-merriweather' });
-const playfair = Playfair_Display({ ...opts, variable: '--font-playfair' });
+const inter = Inter({ subsets: ['latin'], display: 'swap', preload: false, variable: '--font-inter' });
+const outfit = Outfit({ subsets: ['latin'], display: 'swap', preload: false, variable: '--font-outfit' });
+const dmSans = DM_Sans({ subsets: ['latin'], display: 'swap', preload: false, variable: '--font-dm-sans' });
+const poppins = Poppins({ subsets: ['latin'], display: 'swap', preload: false, weight: ['400', '500', '600', '700'], variable: '--font-poppins' });
+const montserrat = Montserrat({ subsets: ['latin'], display: 'swap', preload: false, variable: '--font-montserrat' });
+const lora = Lora({ subsets: ['latin'], display: 'swap', preload: false, variable: '--font-lora' });
+const merriweather = Merriweather({ subsets: ['latin'], display: 'swap', preload: false, weight: ['400', '700'], variable: '--font-merriweather' });
+const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap', preload: false, variable: '--font-playfair' });
 
 export const LOADED_FONTS: Record<FontKey, { variable: string }> = {
   inter,
