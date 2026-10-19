@@ -57,7 +57,7 @@ jobs:
         run: npx next lint > /tmp/out.txt 2>&1 || { grep -B2 "Error:" /tmp/out.txt | tail -40 | sed 's/^/::error title=Lint::/'; exit 1; }
 
       - name: Unit tests
-        run: npm test > /tmp/out.txt 2>&1 || { grep -E "not ok|Error|expected|actual" /tmp/out.txt | tail -40 | sed 's/^/::error title=Tests::/'; exit 1; }
+        run: npm test > /tmp/out.txt 2>&1 || { tail -40 /tmp/out.txt | sed 's/^/::error title=Tests::/'; exit 1; }
 
       - name: Build
         run: npm run build > /tmp/out.txt 2>&1 || { tail -60 /tmp/out.txt | sed 's/^/::error title=Build::/'; exit 1; }
