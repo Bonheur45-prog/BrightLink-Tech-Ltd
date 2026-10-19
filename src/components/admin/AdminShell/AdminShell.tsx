@@ -22,6 +22,14 @@ export function AdminShell({ businessName, user, newMessages, logoutAction, chil
       ],
     },
     {
+      label: 'Site-wide',
+      links: [
+        { href: '/admin/header', label: 'Header' },
+        { href: '/admin/footer', label: 'Footer' },
+        { href: '/admin/settings', label: 'Site settings' },
+      ],
+    },
+    {
       label: 'System',
       links: [
         { href: '/admin/users', label: 'Users' },

@@ -85,6 +85,11 @@ export function normalizeSettings(raw: Raw): SiteSettingsData {
   const d = DEFAULT_SETTINGS
   if (!raw) return d
   return {
+    headingFont: d.headingFont,
+    bodyFont: d.bodyFont,
+    smoothScroll: d.smoothScroll,
+    parallax: d.parallax,
+    enabledLocales: d.enabledLocales,
     companyName: str(raw.companyName, d.companyName) || d.companyName,
     legalName: str(raw.legalName, d.legalName) || d.legalName,
     tagline: str(raw.tagline, d.tagline) || d.tagline,

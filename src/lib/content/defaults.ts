@@ -37,6 +37,11 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
     defaultOgImage: null,
     googleSiteVerification: '',
   },
+  headingFont: 'outfit',
+  bodyFont: 'inter',
+  smoothScroll: true,
+  parallax: true,
+  enabledLocales: ['en'],
 }
 
 /** Starter services (also used by the seed). Editable in /admin → Content → Services. */

@@ -36,6 +36,12 @@ export type SiteSettingsData = {
     defaultOgImage: MediaRef | null
     googleSiteVerification: string
   }
+  /** Keys from src/lib/fonts.ts */
+  headingFont: string
+  bodyFont: string
+  smoothScroll: boolean
+  parallax: boolean
+  enabledLocales: ('en' | 'fr' | 'rw')[]
 }
 
 export type NavChild = { label: string; url: string; description: string }

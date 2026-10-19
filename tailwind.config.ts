@@ -30,8 +30,8 @@ const config: Config = {
         hero: ['clamp(2.15rem, 5vw + 0.6rem, 4.75rem)', { lineHeight: '1.06', letterSpacing: '-0.02em' }],
       },
       fontFamily: {
-        sans: ['var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-        display: ['var(--font-outfit)', 'var(--font-inter)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        sans: ['var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        display: ['var(--font-heading)', 'var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       backgroundImage: {
         'brand-warm': 'linear-gradient(135deg, #ff8e00 0%, #ffc000 100%)',
