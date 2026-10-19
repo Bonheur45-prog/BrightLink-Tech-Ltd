@@ -1,0 +1,153 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-white font-sans text-slate-700 antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display text-brand-navy-deep;
+    text-wrap: balance;
+  }
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-orange;
+  }
+  ::selection {
+    @apply bg-brand-yellow/60 text-brand-navy-deep;
+  }
+}
+
+@layer components {
+  /* Page gutter + max width used by every section */
+  .container-x {
+    @apply mx-auto w-full max-w-7xl px-5 sm:px-8 lg:px-10;
+  }
+  .btn {
+    @apply inline-flex min-h-12 items-center justify-center gap-2 rounded-full px-6 text-[0.95rem] font-semibold transition duration-200;
+  }
+  /* Warm brand gradient taken from the logo (orange → yellow) */
+  .btn-primary {
+    @apply bg-brand-warm text-brand-navy-deep shadow-lg shadow-brand-orange/25 hover:-translate-y-0.5 hover:shadow-xl hover:shadow-brand-orange/35;
+  }
+  .btn-ghost {
+    @apply border border-white/35 bg-white/10 text-white backdrop-blur-sm hover:border-white/70 hover:bg-white/20;
+  }
+  .text-gradient-warm {
+    @apply bg-brand-warm bg-clip-text text-transparent;
+  }
+  /* Blue → teal: the cool half of the logo, for headings on light backgrounds */
+  .text-gradient-cool {
+    @apply bg-brand-cool bg-clip-text text-transparent;
+  }
+  .btn-outline {
+    @apply border-2 border-brand-navy/20 bg-white text-brand-navy hover:border-brand-navy hover:bg-brand-navy hover:text-white;
+  }
+  .btn-navy {
+    @apply bg-brand-navy text-white shadow-lg shadow-brand-navy/25 hover:-translate-y-0.5 hover:bg-brand-navy-deep;
+  }
+}
+
+/* ------------------------------------------------------------------ Hero animation */
+@keyframes hero-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(28px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes hero-orb {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(2%, -4%, 0) scale(1.08);
+  }
+}
+
+.hero-reveal {
+  opacity: 0;
+  animation: hero-reveal 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+.hero-orb {
+  animation: hero-orb 16s ease-in-out infinite;
+}
+
+/* Respect "reduce motion": no zoom, no movement, text simply appears */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .hero-reveal {
+    animation: none;
+    opacity: 1;
+  }
+  .hero-orb {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------ scroll reveal */
+.reveal {
+  opacity: 0;
+  transition:
+    opacity 0.85s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.85s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.reveal-up {
+  transform: translateY(30px);
+}
+.reveal-left {
+  transform: translateX(-40px);
+}
+.reveal-right {
+  transform: translateX(40px);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+/* Without JavaScript nothing would ever reveal, so show everything */
+@media (scripting: none) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Gradient underline that draws itself under a highlighted word once visible */
+@keyframes float-soft {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+.float-soft {
+  animation: float-soft 6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .float-soft {
+    animation: none;
+  }
+}

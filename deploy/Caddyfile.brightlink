@@ -1,0 +1,9 @@
+# Add this block to /etc/caddy/Caddyfile on the VPS (below the StockPro block).
+# Caddy gets and renews the HTTPS certificate on its own.
+brightlinkltd.com, www.brightlinkltd.com {
+	encode zstd gzip
+	request_body {
+		max_size 32MB
+	}
+	reverse_proxy 127.0.0.1:3021
+}

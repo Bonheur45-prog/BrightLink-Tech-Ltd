@@ -1,0 +1,114 @@
+.uploader {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.zone {
+  position: relative;
+  border: 1px dashed var(--chocolate-400);
+  background: var(--white);
+  transition:
+    border-color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
+}
+
+.zone[data-dragging] {
+  border-color: var(--gold-500);
+  border-style: solid;
+  background: var(--plaster);
+}
+
+.zone[data-disabled] {
+  border-color: var(--line);
+}
+
+.input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.label {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-5);
+  text-align: center;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-size: var(--step--1);
+}
+
+.zone[data-disabled] .label {
+  cursor: default;
+}
+
+.input:focus-visible + .label {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 2px;
+}
+
+.labelMain {
+  color: var(--text);
+  font-size: var(--step-0);
+  font-weight: 600;
+}
+
+.labelSub {
+  max-width: var(--measure);
+  margin: 0 auto;
+}
+
+.jobs {
+  display: grid;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--step--1);
+}
+
+.job {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-1) var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  background: var(--white);
+  border-left: 3px solid var(--line);
+}
+
+.job[data-state='done'] {
+  border-left-color: var(--success-700);
+}
+
+.job[data-state='error'] {
+  grid-template-columns: 1fr;
+  border-left-color: var(--danger-700);
+}
+
+.jobName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.jobStatus {
+  color: var(--text-muted);
+}
+
+.job[data-state='done'] .jobStatus {
+  color: var(--success-700);
+  font-weight: 600;
+}
+
+.job[data-state='error'] .jobStatus {
+  color: var(--danger-700);
+  font-weight: 600;
+}
+
+.progress {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 4px;
+  accent-color: var(--gold-500);
+}

@@ -1,0 +1,114 @@
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.label {
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.required {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.control {
+  width: 100%;
+  min-height: 2.5rem;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-control);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--step-0);
+  line-height: var(--lh-body);
+}
+
+.control:hover {
+  border-color: var(--chocolate-400);
+}
+
+.control:focus-visible {
+  outline: 2px solid var(--gold-500);
+  outline-offset: 0;
+  border-color: var(--gold-500);
+}
+
+.field[data-invalid] .control {
+  border-color: var(--danger-700);
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 6rem;
+}
+
+.select {
+  appearance: auto;
+}
+
+.hint {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.error {
+  font-size: var(--step--1);
+  font-weight: 600;
+  color: var(--danger-700);
+}
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.2rem;
+  accent-color: var(--chocolate-800);
+  flex: none;
+}
+
+.checkLabel {
+  display: block;
+  font-weight: 600;
+  font-size: var(--step--1);
+}
+
+.checkHint {
+  display: block;
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.fieldset {
+  margin: 0;
+  padding: var(--space-5);
+  border: 1px solid var(--line);
+  background: var(--white);
+  min-width: 0;
+}
+
+.legend {
+  padding: 0 var(--space-2);
+  margin-left: calc(var(--space-2) * -1);
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+}
+
+.description {
+  margin-bottom: var(--space-4);
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}
+
+.stack {
+  display: grid;
+  gap: var(--space-4);
+}

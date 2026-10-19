@@ -1,0 +1,36 @@
+.card {
+  display: grid;
+  align-content: start;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-5);
+  background: var(--white);
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--line);
+  color: var(--text);
+  text-decoration: none;
+}
+
+a.card:hover {
+  border-top-color: var(--gold-500);
+}
+
+.card[data-highlight] {
+  border-top-color: var(--gold-500);
+}
+
+.value {
+  font-family: var(--font-display);
+  font-size: var(--step-4);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.label {
+  font-size: var(--step--1);
+  font-weight: 600;
+}
+
+.note {
+  font-size: var(--step--1);
+  color: var(--text-muted);
+}

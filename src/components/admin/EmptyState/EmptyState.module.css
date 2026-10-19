@@ -1,0 +1,21 @@
+.empty {
+  padding: var(--space-8) var(--space-5);
+  border: 1px dashed var(--line);
+  background: var(--white);
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--step-1);
+}
+
+.text {
+  max-width: var(--measure);
+  margin: var(--space-2) auto 0;
+  color: var(--text-muted);
+}
+
+.action {
+  margin-top: var(--space-5);
+}

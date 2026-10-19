@@ -1,0 +1,489 @@
+// BrightLink Technologies — database schema (PostgreSQL)
+//
+// Conventions (same as the Oak Elite Home CMS)
+// - Anything a visitor reads and the editor changes is translatable. The base row holds
+//   language-neutral data (slug, status, ordering); a *Translation row holds the text.
+// - Page layouts are stored as JSON (an ordered list of section blocks) so reordering,
+//   draft/publish and version history stay simple. Block shapes are validated in code.
+// - Nothing the editor may want to change (phone, address, fonts...) is hardcoded: it lives in SiteSettings.
+// - English is the default language; fr and rw are supported by the schema and switched on in SiteSettings.
+
+generator client {
+  provider        = "prisma-client-js"
+  // Rust-free client: queries are compiled in JavaScript and sent through the pg driver (src/lib/db.ts).
+  // No native query-engine process: less memory on the VPS, and nothing extra to download at install.
+  engineType      = "client"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ───────────────────────── Enums ─────────────────────────
+
+enum Locale {
+  en
+  fr
+  rw
+}
+
+enum PublishStatus {
+  DRAFT
+  PUBLISHED
+}
+
+enum MediaKind {
+  IMAGE
+  VIDEO
+}
+
+enum ProjectState {
+  COMPLETED
+  IN_PROGRESS
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  CLOSED
+}
+
+// ───────────────────────── Users ─────────────────────────
+
+/// One role: every user can manage everything. Safety net = soft delete + version history + audit log.
+model User {
+  id           String    @id @default(cuid())
+  email        String    @unique
+  name         String
+  passwordHash String
+  active       Boolean   @default(true)
+  createdAt    DateTime  @default(now())
+  lastLoginAt  DateTime?
+
+  sessions Session[]
+  uploads  MediaAsset[]
+  audit    AuditLog[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  tokenHash String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ───────────────────────── Site settings ─────────────────────────
+
+/// Singleton row (id is always 1). Company details, SEO defaults, fonts and motion switches.
+model SiteSettings {
+  id                     Int      @id @default(1)
+  companyName            String
+  legalName              String
+  phone                  String   @default("")
+  secondaryPhone         String   @default("")
+  publicEmail            String   @default("")
+  notificationEmail      String   @default("") // where new messages are emailed
+  addressStreet          String   @default("")
+  addressCity            String   @default("")
+  addressCountry         String   @default("")
+  addressCountryCode     String   @default("")
+  openingHours           String   @default("")
+  /// [{ "platform": "linkedin", "url": "https://..." }]
+  socials                Json     @default("[]")
+  logoMediaId            String?
+  logoLightMediaId       String? // wordmark for dark backgrounds
+  defaultOgMediaId       String? // social-share image used when a page has none
+  titleTemplate          String   @default("%s | BrightLink Technologies")
+  googleSiteVerification String   @default("")
+  defaultLocale          Locale   @default(en)
+  /// Languages switched on for visitors. English is always on.
+  enabledLocales         Locale[] @default([en])
+  /// Site-wide fonts: keys from the curated list in src/lib/fonts.ts.
+  headingFont            String   @default("outfit")
+  bodyFont               String   @default("inter")
+  /// Motion switches. Both are ignored for visitors who ask their device for reduced motion.
+  smoothScroll           Boolean  @default(true)
+  parallax               Boolean  @default(true)
+  updatedAt              DateTime @updatedAt
+
+  translations SiteSettingsTranslation[]
+}
+
+model SiteSettingsTranslation {
+  id                String @id @default(cuid())
+  settingsId        Int
+  locale            Locale
+  tagline           String @default("")
+  footerDescription String @default("")
+  seoTitle          String @default("") // default <title> when a page has none
+  seoDescription    String @default("")
+
+  settings SiteSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+
+  @@unique([settingsId, locale])
+}
+
+// ───────────────────────── Media (R2) ─────────────────────────
+
+/// A file stored in Cloudflare R2. Photos are stored as WebP in several widths (`variants`) so the
+/// browser downloads a size that fits its screen; width/height and a blur placeholder are captured at
+/// upload so layouts never jump. Alt text is per language.
+model MediaAsset {
+  id           String    @id @default(cuid())
+  kind         MediaKind
+  objectKey    String    @unique // the largest stored version
+  mimeType     String
+  sizeBytes    Int
+  width        Int
+  height       Int
+  /// Smaller copies of a photo: [{ "w": 480, "key": "uploads/2026/10/abc-480.webp", "h": 270 }]
+  variants     Json      @default("[]")
+  durationSec  Int? // videos only
+  blurDataUrl  String?   @db.Text
+  posterKey    String? // video poster image key
+  uploadedById String?
+  createdAt    DateTime  @default(now())
+  deletedAt    DateTime? // soft delete: the files are only purged from R2 when removed from the trash
+
+  uploadedBy   User?                   @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+  translations MediaAssetTranslation[]
+  serviceCovers  Service[]    @relation("ServiceCover")
+  projectCovers  Project[]    @relation("ProjectCover")
+  projectGallery ProjectMedia[]
+  clientLogos    Client[]     @relation("ClientLogo")
+  teamPhotos     TeamMember[] @relation("TeamPhoto")
+  postCovers     Post[]       @relation("PostCover")
+
+  @@index([createdAt])
+  @@index([deletedAt])
+}
+
+model MediaAssetTranslation {
+  id      String @id @default(cuid())
+  mediaId String
+  locale  Locale
+  alt     String @default("")
+
+  media MediaAsset @relation(fields: [mediaId], references: [id], onDelete: Cascade)
+
+  @@unique([mediaId, locale])
+}
+
+// ───────────────────────── Page layouts (block builder) ─────────────────────────
+
+/// A page = an ordered list of section blocks, stored as JSON:
+///   { "sections": [ { "id", "type", "variant", "visible", "background", "content": { "en": {...} } } ],
+///     "seo": { "en": { "title", "description", "ogMediaId" } } }
+/// `draft` is what the editor changes; `published` is what visitors see.
+model Page {
+  id          String    @id @default(cuid())
+  key         String    @unique // "home", "about", "services", "projects", "blog", "contact"
+  draft       Json      @default("{}")
+  published   Json?
+  publishedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+/// Site-wide content that appears on many pages: "header", "footer".
+model GlobalSection {
+  id          String    @id @default(cuid())
+  key         String    @unique
+  draft       Json      @default("{}")
+  published   Json?
+  publishedAt DateTime?
+  updatedAt   DateTime  @updatedAt
+}
+
+/// Snapshot taken on every publish so an earlier version can be restored.
+model ContentVersion {
+  id          String   @id @default(cuid())
+  entityType  String // "page" | "global" | "post"
+  entityKey   String
+  snapshot    Json
+  note        String?
+  createdById String?
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityKey, createdAt])
+}
+
+// ───────────────────────── Services ─────────────────────────
+
+model Service {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  status       PublishStatus @default(PUBLISHED)
+  icon         String        @default("") // key from the icon set in src/components/ui/Icons.tsx
+  showOnHome   Boolean       @default(true)
+  sortOrder    Int           @default(0)
+  coverMediaId String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  coverMedia   MediaAsset?          @relation("ServiceCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  translations ServiceTranslation[]
+  projects     Project[]
+
+  @@index([status, sortOrder])
+}
+
+model ServiceTranslation {
+  id               String  @id @default(cuid())
+  serviceId        String
+  locale           Locale
+  title            String
+  shortDescription String  @default("")
+  /// ["Feature one", "Feature two"]
+  features         Json    @default("[]")
+  /// The service page as ordered sections (banner, overview, offerings, process, FAQs...).
+  content          Json    @default("{}")
+  metaTitle        String  @default("")
+  metaDescription  String  @default("")
+  ogMediaId        String?
+
+  service Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, locale])
+}
+
+// ───────────────────────── Projects ─────────────────────────
+
+model Project {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  serviceId    String?
+  status       PublishStatus @default(DRAFT)
+  state        ProjectState  @default(COMPLETED)
+  progress     Int           @default(100) // 0–100; 100 for completed projects
+  externalUrl  String        @default("")
+  showOnHome   Boolean       @default(true)
+  sortOrder    Int           @default(0)
+  coverMediaId String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  deletedAt    DateTime?
+
+  service      Service?             @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  coverMedia   MediaAsset?          @relation("ProjectCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  translations ProjectTranslation[]
+  gallery      ProjectMedia[]
+
+  @@index([status, state, sortOrder])
+  @@index([serviceId])
+}
+
+model ProjectTranslation {
+  id               String  @id @default(cuid())
+  projectId        String
+  locale           Locale
+  title            String
+  category         String  @default("")
+  shortDescription String  @default("")
+  /// ["Paragraph one", "Paragraph two"]
+  paragraphs       Json    @default("[]")
+  /// ["Highlight one", "Highlight two"]
+  highlights       Json    @default("[]")
+  metaTitle        String  @default("")
+  metaDescription  String  @default("")
+  ogMediaId        String?
+
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, locale])
+}
+
+model ProjectMedia {
+  projectId String
+  mediaId   String
+  position  Int
+
+  project Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  media   MediaAsset @relation(fields: [mediaId], references: [id])
+
+  @@id([projectId, mediaId])
+  @@index([projectId, position])
+}
+
+// ───────────────────────── Clients & team ─────────────────────────
+
+model Client {
+  id          String        @id @default(cuid())
+  name        String
+  website     String        @default("")
+  logoMediaId String?
+  status      PublishStatus @default(PUBLISHED)
+  sortOrder   Int           @default(0)
+  createdAt   DateTime      @default(now())
+  deletedAt   DateTime?
+
+  logoMedia MediaAsset? @relation("ClientLogo", fields: [logoMediaId], references: [id], onDelete: SetNull)
+
+  @@index([status, sortOrder])
+}
+
+model TeamMember {
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @default("")
+  linkedin     String        @default("")
+  photoMediaId String?
+  status       PublishStatus @default(PUBLISHED)
+  sortOrder    Int           @default(0)
+  createdAt    DateTime      @default(now())
+  deletedAt    DateTime?
+
+  photoMedia   MediaAsset?            @relation("TeamPhoto", fields: [photoMediaId], references: [id], onDelete: SetNull)
+  translations TeamMemberTranslation[]
+  posts        Post[]
+
+  @@index([status, sortOrder])
+}
+
+model TeamMemberTranslation {
+  id       String @id @default(cuid())
+  memberId String
+  locale   Locale
+  role     String @default("")
+  bio      String @default("") @db.Text
+
+  member TeamMember @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([memberId, locale])
+}
+
+// ───────────────────────── Blog ─────────────────────────
+
+model BlogCategory {
+  id        String @id @default(cuid())
+  slug      String @unique
+  icon      String @default("")
+  color     String @default("blue") // orange | teal | blue | green | navy
+  sortOrder Int    @default(0)
+
+  translations BlogCategoryTranslation[]
+  posts        Post[]
+}
+
+model BlogCategoryTranslation {
+  id              String @id @default(cuid())
+  categoryId      String
+  locale          Locale
+  name            String
+  description     String @default("")
+  metaTitle       String @default("")
+  metaDescription String @default("")
+
+  category BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@unique([categoryId, locale])
+}
+
+model Post {
+  id             String        @id @default(cuid())
+  slug           String        @unique
+  status         PublishStatus @default(DRAFT)
+  categoryId     String
+  authorId       String? // a team member; empty = "BrightLink Team"
+  coverMediaId   String?
+  tags           String[]      @default([])
+  featured       Boolean       @default(false)
+  readingMinutes Int           @default(1)
+  focusKeyword   String        @default("")
+  canonicalUrl   String        @default("")
+  noIndex        Boolean       @default(false)
+  /// Set when first published. A date in the future means "scheduled": hidden until then.
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  deletedAt      DateTime?
+
+  category     BlogCategory      @relation(fields: [categoryId], references: [id])
+  author       TeamMember?       @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  coverMedia   MediaAsset?       @relation("PostCover", fields: [coverMediaId], references: [id], onDelete: SetNull)
+  translations PostTranslation[]
+
+  @@index([status, publishedAt])
+  @@index([categoryId])
+}
+
+model PostTranslation {
+  id              String   @id @default(cuid())
+  postId          String
+  locale          Locale
+  title           String
+  excerpt         String   @default("")
+  /// The editor's document (Tiptap JSON). Only the admin ever reads this.
+  doc             Json     @default("{}")
+  /// Clean HTML rendered from `doc` when the post is saved, so visitors never download the editor.
+  html            String   @default("") @db.Text
+  /// [{ "id": "why-it-matters", "text": "Why it matters", "level": 2 }]
+  toc             Json     @default("[]")
+  /// Font keys the article uses (src/lib/fonts.ts): only these are downloaded on the post's page.
+  fonts           String[] @default([])
+  metaTitle       String   @default("")
+  metaDescription String   @default("")
+  ogMediaId       String?
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([postId, locale])
+}
+
+// ───────────────────────── Messages, subscribers, redirects, audit ─────────────────────────
+
+model Lead {
+  id         String     @id @default(cuid())
+  status     LeadStatus @default(NEW)
+  name       String
+  email      String
+  phone      String     @default("")
+  service    String     @default("")
+  message    String     @default("") @db.Text
+  source     String     @default("")
+  locale     Locale     @default(en)
+  userAgent  String?
+  notifiedAt DateTime? // set when the notification email was sent
+  notifyError String? // set when sending failed, so nothing is silently lost
+  createdAt  DateTime   @default(now())
+
+  @@index([status, createdAt])
+}
+
+model Subscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  source    String   @default("")
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+/// Old address → new address, created automatically when a slug is renamed (or by hand).
+model Redirect {
+  id        String   @id @default(cuid())
+  fromPath  String   @unique // "/blog/old-slug"
+  toPath    String
+  permanent Boolean  @default(true)
+  createdAt DateTime @default(now())
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String // "post.create", "page.publish", ...
+  entityType String
+  entityId   String
+  meta       Json     @default("{}")
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

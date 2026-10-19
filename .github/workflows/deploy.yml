@@ -1,0 +1,71 @@
+# Builds the website on GitHub (not on the VPS, to save its memory) and deploys it on every push to main.
+# Needs these repository secrets (Settings → Secrets and variables → Actions):
+#   DATABASE_URL, R2_PUBLIC_HOSTNAME, SITE_URL  (same values as the VPS .env)
+#   VPS_HOST, VPS_USER, VPS_SSH_KEY              (server address, login user, private SSH key)
+name: Deploy to VPS
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      R2_PUBLIC_HOSTNAME: ${{ secrets.R2_PUBLIC_HOSTNAME }}
+      SITE_URL: ${{ secrets.SITE_URL }}
+      NEXT_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Apply database changes
+        run: npx prisma migrate deploy
+
+      - name: Build
+        run: npm run build
+
+      - name: Package the standalone app
+        run: |
+          mkdir -p .next/standalone/public
+          if [ -d public ]; then cp -r public/. .next/standalone/public/; fi
+          cp -r .next/static .next/standalone/.next/static
+          cp deploy/ecosystem.config.cjs .next/standalone/
+          tar -czf release.tgz -C .next/standalone .
+
+      - name: Upload and switch to the new release
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+          SSH="ssh -i ~/.ssh/id_deploy $VPS_USER@$VPS_HOST"
+          RELEASE=$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}
+          scp -i ~/.ssh/id_deploy release.tgz "$VPS_USER@$VPS_HOST:/var/www/brightlink/release.tgz"
+          $SSH "set -e
+            cd /var/www/brightlink
+            mkdir -p releases/$RELEASE
+            tar -xzf release.tgz -C releases/$RELEASE && rm release.tgz
+            ln -sfn releases/$RELEASE current
+            pm2 startOrReload /var/www/brightlink/current/ecosystem.config.cjs --update-env
+            pm2 save
+            # Keep the last 3 releases (to roll back quickly), delete older ones.
+            ls -1dt releases/* | tail -n +4 | xargs -r rm -rf"
