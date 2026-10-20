@@ -17,8 +17,20 @@ export function AdminShell({ businessName, user, newMessages, logoutAction, chil
   const groups: { label?: string; links: AdminNavLink[] }[] = [
     {
       links: [
-        { href: '/admin', label: 'Dashboard', count: newMessages },
+        { href: '/admin', label: 'Dashboard' },
+        { href: '/admin/messages', label: 'Messages', count: newMessages },
         { href: '/admin/media', label: 'Media library' },
+      ],
+    },
+    {
+      label: 'Content',
+      links: [
+        { href: '/admin/services', label: 'Services' },
+        { href: '/admin/projects', label: 'Projects' },
+        { href: '/admin/clients', label: 'Clients' },
+        { href: '/admin/team', label: 'Team' },
+        { href: '/admin/subscribers', label: 'Subscribers' },
+        { href: '/admin/trash', label: 'Trash' },
       ],
     },
     {

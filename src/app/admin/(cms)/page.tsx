@@ -37,7 +37,7 @@ export default async function DashboardPage() {
         </Notice>
       ))}
       <div style={{ display: 'grid', gap: 'var(--space-4)', gridTemplateColumns: 'repeat(auto-fit, minmax(11rem, 1fr))' }}>
-        <StatCard label="New messages" value={newMessages} highlight={newMessages > 0} />
+        <StatCard label="New messages" value={newMessages} highlight={newMessages > 0} href="/admin/messages?status=NEW" />
         <StatCard label="Files in the media library" value={media} href="/admin/media" />
         <StatCard label="Active users" value={users} href="/admin/users" />
       </div>

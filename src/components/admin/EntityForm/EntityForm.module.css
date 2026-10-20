@@ -1,0 +1,12 @@
+.form { display: grid; gap: var(--space-5); }
+.layout { display: grid; gap: var(--space-5); align-items: start; }
+@media (min-width: 64rem) { .layout { grid-template-columns: minmax(0, 1fr) 20rem; } }
+.main, .aside { display: grid; gap: var(--space-5); }
+.bar { position: sticky; bottom: 0; z-index: 5; display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); padding: var(--space-3) var(--gutter); margin: 0 calc(var(--gutter) * -1); background: var(--white); border-top: 1px solid var(--line-gold); }
+.status { font-size: var(--step--1); color: var(--text-muted); }
+.status[data-dirty] { color: var(--warning-700); font-weight: 600; }
+.label { font-weight: 600; }
+.gallery { display: grid; gap: var(--space-2); }
+.galleryList { display: flex; flex-wrap: wrap; gap: var(--space-3); margin: 0; padding: 0; list-style: none; }
+.galleryItem { display: grid; gap: var(--space-1); justify-items: center; }
+.galleryTools { display: flex; }

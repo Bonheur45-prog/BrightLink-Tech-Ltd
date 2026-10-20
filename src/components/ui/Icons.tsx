@@ -238,6 +238,8 @@ export const SendIcon = (p: IconProps) => (
   </svg>
 )
 
+export const ICON_KEYS = () => Object.keys(BY_KEY)
+
 const BY_KEY: Record<string, (p: IconProps) => JSX.Element> = {
   code: CodeIcon,
   globe: GlobeIcon,

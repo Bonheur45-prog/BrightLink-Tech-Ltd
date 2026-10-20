@@ -8,6 +8,8 @@ export const NOTICES = {
   restored: 'Restored as a draft. Publish it again when ready.',
   deleted: 'Deleted for good, with its photos and videos.',
   saved: 'Saved.',
+  'deleted-entity': 'Deleted for good. Its photos are still in the media library.',
+  'lead-deleted': 'Message deleted.',
   discarded: 'Unpublished changes thrown away. The editor shows what is live again.',
   'version-restored': 'That version is now in the draft. Check it, then publish to put it live.',
   'settings-saved': 'Settings saved. The website shows them now.',
@@ -26,7 +28,7 @@ export const NOTICES = {
 } as const;
 
 export const ERRORS = {
-  'missing-title': 'Add an English name before publishing.',
+  'missing-title': 'Type a name first.',
   'missing-media': 'Add at least one photo or video before publishing.',
   'in-trash': 'Restore it from the trash first.',
   'not-found': 'It no longer exists. It may have been deleted in another window.',
