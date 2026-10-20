@@ -192,7 +192,12 @@ export async function restoreEntity(kind: Kind, id: string) {
 export async function deleteEntity(kind: Kind, id: string) {
   const user = await requireUser();
   if (!KINDS.includes(kind) || !ID.test(id)) redirect('/admin');
-  await model(kind).deleteMany({ where: { id, deletedAt: { not: null } } });
+  const { count } = await model(kind).deleteMany({ where: { id, deletedAt: { not: null } } });
+  if (count && kind === 'services') {
+    // the service's own page and its version history go with it
+    await prisma.page.deleteMany({ where: { key: `service-${id}` } });
+    await prisma.contentVersion.deleteMany({ where: { entityType: 'page', entityKey: `service-${id}` } });
+  }
   await audit(user.id, `${kind}.delete`, kind, id);
   redirect('/admin/trash?notice=deleted-entity');
 }

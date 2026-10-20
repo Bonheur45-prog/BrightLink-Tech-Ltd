@@ -8,7 +8,7 @@ Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github
 | 2 | Site settings, header, footer, SEO defaults, languages, curated font list | **done (branch phase-2)** |
 
 | 3 | Collections: services, projects, clients, team, leads, subscribers, trash | **done (branch phase-3)** |
-| 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | |
+| 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | **done (branch phase-4)** |
 | 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | |
 | 6 | Public site reconnected: caching, parallax, smooth scroll, image sizes | |
 | 7 | Hardening: deploy, performance and SEO audit, tests | |
@@ -65,6 +65,21 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
 - Smooth-scroll/parallax switches are stored but only take effect in Phase 6. Locale routing (`/fr`, `/rw`) is Phase 6;
   until then the site renders English.
 - CI: migrate deploy, seed ×2, typecheck, lint, 19 unit tests, build, start the standalone server and check key pages.
+
+## What Phase 4 added
+- Section catalogue `src/lib/pages/catalogue.ts`: 17 types (hero, banner, highlights, textMedia, services, projects,
+  features, mission, glance, clients, team, faq, cta, contact, newsletter, posts, richText), each with layouts
+  (variants) and a field schema. Background per section: page colour / tint / dark / photo (+ parallax, darkening).
+- Page JSON `{ sections: [{ id, type, variant, visible, background, data }], seo: { title, description, ogImage, noIndex } }`;
+  text values are `{ en, fr, rw }`. Parser/checks: `src/lib/pages/model.ts` (unknown types dropped, values clamped).
+- Starter pages `src/lib/pages/defaults.ts`, built from the existing starter content (home, about, services, projects,
+  blog, contact, and one per service from its name/description): the editor shows them until a page is published.
+- `/admin/pages` + `/admin/pages/<key>` (keys: home, about, services, projects, blog, contact, `service-<serviceId>`):
+  generic schema-driven editor (add/reorder/hide/duplicate/remove sections and items, language switcher), SEO panel
+  with Google preview + checklist, draft/publish bar, version history. Store: `src/lib/cms/drafts.ts` (now also pages).
+- Publishing is refused when a visible photo has no English alt text, or required text / links are missing.
+- Deleting a service for good also deletes its page and versions. `ServiceTranslation.content` is no longer used.
+- The public pages are NOT yet drawn from these sections: Phase 6 maps each section type to the components.
 
 ## What Phase 3 added
 - `/admin/services`, `/admin/projects`, `/admin/clients`, `/admin/team`: list → create by name → editor (texts per

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { CField, EntityForm } from '@/components/admin/EntityForm/EntityForm';
+import { Button } from '@/components/admin/Button/Button';
 import { Fieldset, Select, TextInput } from '@/components/admin/Field/Field';
 import { MediaField } from '@/components/admin/MediaPicker/MediaPicker';
 import { ICON_KEYS } from '@/components/ui/Icons';
@@ -30,6 +31,10 @@ export default async function ServiceEditor({ params, searchParams }: { params: 
             <PublishBox status={s.status} sortOrder={s.sortOrder}>
               <HomeCheckbox checked={s.showOnHome} />
             </PublishBox>
+            <Fieldset legend="Service page">
+              <p>The sections of this service’s own page (overview, offerings, FAQs…) are edited in the page builder.</p>
+              <Button href={`/admin/pages/service-${s.id}`}>Edit page sections</Button>
+            </Fieldset>
             <Fieldset legend="Picture and icon">
               <MediaField name="coverMediaId" label="Cover photo" initial={s.coverMediaId ? (media.get(s.coverMediaId) ?? null) : null} />
               <CField name="icon" label="Icon">
