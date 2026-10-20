@@ -9,6 +9,9 @@
  */
 import { PrismaPg } from '@prisma/adapter-pg';
 import { PrismaClient } from '@prisma/client';
+import { STARTER_CATEGORIES_RAW, STARTER_POSTS_RAW } from '../src/lib/content/blogDefaults';
+import { markdownToBlocks } from '../src/lib/content/richtext';
+import { blocksToDoc, renderDoc } from '../src/lib/blog/render';
 import { DEFAULT_SETTINGS, STARTER_CLIENTS_RAW, STARTER_PROJECTS_RAW, STARTER_SERVICES_RAW } from '../src/lib/content/defaults';
 
 try {
@@ -22,6 +25,41 @@ const prisma = new PrismaClient({ adapter: new PrismaPg({ connectionString: proc
 async function main() {
   await seedSettings();
   await seedCollections();
+  await seedBlog();
+}
+
+async function seedBlog() {
+  if ((await prisma.blogCategory.count()) === 0) {
+    for (const c of STARTER_CATEGORIES_RAW) {
+      await prisma.blogCategory.create({ data: { slug: c.slug, icon: c.icon, color: c.color, sortOrder: c.order, translations: { create: { locale: 'en', name: c.name, description: c.description } } } });
+    }
+    console.log(`Created ${STARTER_CATEGORIES_RAW.length} blog categories.`);
+  }
+  if ((await prisma.post.count()) === 0) {
+    const cats = await prisma.blogCategory.findMany({ select: { id: true, slug: true } });
+    for (const p of STARTER_POSTS_RAW) {
+      const category = cats.find((c) => c.slug === p.category) ?? cats[0];
+      if (!category) continue;
+      const doc = blocksToDoc(markdownToBlocks(p.body));
+      const r = renderDoc(doc);
+      await prisma.post.create({
+        data: {
+          slug: p.slug,
+          status: 'PUBLISHED',
+          categoryId: category.id,
+          tags: p.tags,
+          featured: !!p.featured,
+          focusKeyword: p.focusKeyword,
+          readingMinutes: r.readingMinutes,
+          publishedAt: new Date(p.date),
+          translations: {
+            create: { locale: 'en', title: p.title, excerpt: p.excerpt, doc: doc as object, html: r.html, toc: r.toc, fonts: r.fonts, metaTitle: p.metaTitle, metaDescription: p.metaDescription },
+          },
+        },
+      });
+    }
+    console.log(`Created ${STARTER_POSTS_RAW.length} starter articles.`);
+  }
 }
 
 async function seedCollections() {

@@ -77,9 +77,13 @@ jobs:
           check /admin/header 307
           check /admin/services 307
           check /admin/pages/home 307
+          check /admin/blog 307
+          check /blog/feed.xml 200
           check /admin/api/export/leads 401
           check /sitemap.xml 200
           # the home page must show the seeded company details and the chosen font variables
           curl -s http://localhost:3000/ | grep -q -- '--font-heading' || { echo "::error title=Smoke::home page has no --font-heading"; fail=1; }
           curl -s http://localhost:3000/ | grep -q 'info@brightlinkltd.com' || { echo "::error title=Smoke::home page lacks the seeded email"; fail=1; }
+          # the RSS feed must come from the database (seeded articles)
+          curl -s http://localhost:3000/blog/feed.xml | grep -q 'StockPro' || { echo "::error title=Smoke::RSS feed lacks the seeded articles"; fail=1; }
           if [ $fail = 1 ]; then tail -30 /tmp/server.txt | sed 's/^/::error title=Server log::/'; exit 1; fi

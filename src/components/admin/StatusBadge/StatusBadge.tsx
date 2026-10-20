@@ -3,6 +3,7 @@ import styles from './StatusBadge.module.css';
 const LABELS: Record<string, { text: string; tone: 'success' | 'muted' | 'warning' | 'danger' }> = {
   PUBLISHED: { text: 'Published', tone: 'success' },
   DRAFT: { text: 'Draft', tone: 'muted' },
+  SCHEDULED: { text: 'Scheduled', tone: 'muted' },
   NEW: { text: 'New', tone: 'warning' },
   CONTACTED: { text: 'Contacted', tone: 'success' },
   CLOSED: { text: 'Closed', tone: 'muted' },

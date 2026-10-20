@@ -17,23 +17,25 @@ export default async function TrashPage({ searchParams }: { searchParams: Search
   await requireUser();
   const trashed = { deletedAt: { not: null } };
   const en = { translations: { where: { locale: 'en' as const } } };
-  const [services, projects, clients, team] = await Promise.all([
+  const [services, projects, clients, team, posts] = await Promise.all([
     prisma.service.findMany({ where: trashed, include: en }),
     prisma.project.findMany({ where: trashed, include: en }),
     prisma.client.findMany({ where: trashed }),
     prisma.teamMember.findMany({ where: trashed }),
+    prisma.post.findMany({ where: trashed, include: en }),
   ]);
   const rows: { kind: Kind; label: string; id: string; title: string; at: Date }[] = [
     ...services.map((s) => ({ kind: 'services' as const, label: 'Service', id: s.id, title: s.translations[0]?.title || s.slug, at: s.deletedAt! })),
     ...projects.map((p) => ({ kind: 'projects' as const, label: 'Project', id: p.id, title: p.translations[0]?.title || p.slug, at: p.deletedAt! })),
     ...clients.map((c) => ({ kind: 'clients' as const, label: 'Client', id: c.id, title: c.name, at: c.deletedAt! })),
     ...team.map((t) => ({ kind: 'team' as const, label: 'Team member', id: t.id, title: t.name, at: t.deletedAt! })),
+    ...posts.map((p) => ({ kind: 'posts' as const, label: 'Article', id: p.id, title: p.translations[0]?.title || p.slug, at: p.deletedAt! })),
   ].sort((a, b) => b.at.getTime() - a.at.getTime());
   const { notice } = noticeFrom(await searchParams);
 
   return (
     <>
-      <PageHeader title="Trash" description="Services, projects, clients and team members you removed. Restored items come back as drafts. Photos and videos have their own trash in the Media library." />
+      <PageHeader title="Trash" description="Services, projects, clients, team members and articles you removed. Restored items come back as drafts. Photos and videos have their own trash in the Media library." />
       {notice && <Notice tone="success">{notice}</Notice>}
       {rows.length === 0 ? (
         <EmptyState title="The trash is empty." />

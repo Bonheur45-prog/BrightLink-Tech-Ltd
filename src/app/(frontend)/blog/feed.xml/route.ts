@@ -1,4 +1,5 @@
-import { getAllPosts, getSiteSettings } from '@/lib/content'
+import { getSiteSettings } from '@/lib/content'
+import { loadFeedPosts } from '@/lib/blog/public'
 import { absoluteUrl, getServerUrl } from '@/lib/seo'
 
 export const dynamic = 'force-dynamic'
@@ -7,7 +8,7 @@ const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replac
 
 /** RSS feed of the latest articles, for feed readers and as an extra signal to search engines. */
 export async function GET() {
-  const [settings, posts] = await Promise.all([getSiteSettings(), getAllPosts()])
+  const [settings, posts] = await Promise.all([getSiteSettings(), loadFeedPosts()])
   const items = posts
     .slice(0, 30)
     .map(
@@ -16,7 +17,7 @@ export async function GET() {
       <link>${absoluteUrl(p.url)}</link>
       <guid isPermaLink="true">${absoluteUrl(p.url)}</guid>
       <pubDate>${new Date(p.publishedAt).toUTCString()}</pubDate>
-${p.category ? `      <category>${esc(p.category.name)}</category>\n` : ''}      <description>${esc(p.excerpt)}</description>
+${p.category ? `      <category>${esc(p.category)}</category>\n` : ''}      <description>${esc(p.excerpt)}</description>
     </item>`,
     )
     .join('\n')

@@ -26,6 +26,7 @@ export function AdminShell({ businessName, user, newMessages, logoutAction, chil
       label: 'Content',
       links: [
         { href: '/admin/pages', label: 'Pages' },
+        { href: '/admin/blog', label: 'Blog' },
         { href: '/admin/services', label: 'Services' },
         { href: '/admin/projects', label: 'Projects' },
         { href: '/admin/clients', label: 'Clients' },
