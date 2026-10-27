@@ -154,9 +154,10 @@ const projectsFromCms = cachedPublic('public-projects', async (locale: Locale): 
   })
 })
 
-export const getProjects = cache(async (limit = 50): Promise<ProjectItem[]> => {
+export const getProjects = cache(async (limit = 50, requestedLocale?: Locale): Promise<ProjectItem[]> => {
+  const locale = requestedLocale ?? await getRequestLocale()
   try {
-    const rows = await projectsFromCms(await getRequestLocale())
+    const rows = await projectsFromCms(locale)
     return rows.length ? rows.slice(0, Math.max(0, limit)) : STARTER_PROJECTS.slice(0, limit)
   } catch (error) {
     console.error('[content] projects could not be loaded; using starter content', error)
@@ -181,9 +182,10 @@ const clientsFromCms = cachedPublic('public-clients', async (locale: Locale): Pr
   })
 })
 
-export const getClients = cache(async (): Promise<ClientItem[]> => {
+export const getClients = cache(async (requestedLocale?: Locale): Promise<ClientItem[]> => {
+  const locale = requestedLocale ?? await getRequestLocale()
   try {
-    const rows = await clientsFromCms(await getRequestLocale())
+    const rows = await clientsFromCms(locale)
     return rows.length ? rows : STARTER_CLIENTS
   } catch (error) {
     console.error('[content] clients could not be loaded; using starter content', error)
@@ -384,7 +386,7 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   try {
     const categories = await loadPublicCategories(await getRequestLocale())
     if (categories.length) return categories
-    const posts = await loadPublicPosts('en')
+    const posts = await loadPublicPosts(await getRequestLocale())
     if (posts.length) return []
   } catch (error) {
     console.error('[content] blog categories could not be loaded; using starter content', error)
