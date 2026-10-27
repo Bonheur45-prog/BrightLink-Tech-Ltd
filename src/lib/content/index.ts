@@ -59,7 +59,7 @@ export const getHomePage = cache(async (): Promise<HomePageData> => {
     console.error('[content] home page could not be loaded; using starter content', error)
     return DEFAULT_HOME
   }
-}))
+})
 export const getFooter = cache(async (): Promise<FooterData> => loadFooter('en'))
 
 type PublicMediaRow = {
@@ -100,7 +100,7 @@ const servicesFromCms = cachedPublic('public-services', async (): Promise<Servic
       slug: row.slug,
       title: translation.title,
       shortDescription: translation.shortDescription,
-      features: features.map((feature) => ({ text: String(feature) })),
+      features: features.map((feature) => ({ text: String(feature) }),
       icon: row.icon,
       showOnHome: row.showOnHome,
     })
@@ -192,7 +192,7 @@ export const getAboutPage = cache(async (): Promise<AboutData> => {
     console.error('[content] about page could not be loaded; using starter content', error)
     return DEFAULT_ABOUT
   }
-}))
+})
 const teamFromCms = cachedPublic('public-team', async (): Promise<TeamMember[]> => {
   const rows = await prisma.teamMember.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
@@ -259,7 +259,7 @@ export const getContactPage = cache(async (): Promise<ContactPageData> => {
 export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetail | null> => {
   const starter = STARTER_SERVICES.find((s) => s.slug === slug)
   if (!starter) return null
-  const detail = normalizeServiceDetail({ ...starter, features: starter.features.map((text) => ({ text })) })
+  const detail = normalizeServiceDetail({ ...starter, features: starter.features.map((text) => ({ text }) })
   if (!detail) return null
   if (detail.clientsServed.length === 0 && detail.clientsServedFallback.length) {
     const clients = await getClients()
@@ -299,7 +299,7 @@ export const getAllPosts = cache(async (): Promise<BlogPost[]> => STARTER_POSTS.
 /** Categories with the number of published articles in each; empty ones are hidden on the site. */
 export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   const posts = await getAllPosts()
-  return STARTER_CATEGORIES.map((c) => ({ ...c, count: posts.filter((p) => p.category?.slug === c.slug).length })).filter((c) => c.count > 0)
+  return STARTER_CATEGORIES.map((c) => ({ ...c, count: posts.filter((p) => p.category?.slug === c.slug).length }).filter((c) => c.count > 0)
 })
 
 export const getPostBySlug = cache(async (slug: string): Promise<BlogPostFull | null> => STARTER_POSTS.find((p) => p.slug === slug) ?? null)
