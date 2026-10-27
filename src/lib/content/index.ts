@@ -1,4 +1,6 @@
 import { cache } from 'react'
+import type { Locale } from '@/i18n/config'
+import { getRequestLocale } from './request-locale'
 
 import { loadFooter, loadHeader, loadSiteSettings } from './site'
 
@@ -43,6 +45,8 @@ import type {
 
 export type * from './types'
 
+const localeTranslation = <T extends { locale: string }>(rows: T[], locale: Locale): T | undefined => rows.find((row) => row.locale === locale) ?? rows.find((row) => row.locale === 'en')
+
 /**
  * Data-access helpers used by every public page.
  *
@@ -51,17 +55,17 @@ export type * from './types'
  * Keep the function names and return types: the pages already depend on them.
  */
 // Phase 2: settings, header and footer now come from the database (see ./site.ts).
-export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => loadSiteSettings('en'))
-export const getHeader = cache(async (): Promise<HeaderData> => loadHeader('en'))
+export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => loadSiteSettings(await getRequestLocale()))
+export const getHeader = cache(async (): Promise<HeaderData> => loadHeader(await getRequestLocale()))
 export const getHomePage = cache(async (): Promise<HomePageData> => {
   try {
-    return (await loadHomePage('en')) ?? DEFAULT_HOME
+    return (await loadHomePage(await getRequestLocale())) ?? DEFAULT_HOME
   } catch (error) {
     console.error('[content] home page could not be loaded; using starter content', error)
     return DEFAULT_HOME
   }
 })
-export const getFooter = cache(async (): Promise<FooterData> => loadFooter('en'))
+export const getFooter = cache(async (): Promise<FooterData> => loadFooter(await getRequestLocale()))
 
 type PublicMediaRow = {
   objectKey: string
@@ -71,12 +75,12 @@ type PublicMediaRow = {
   translations: { locale: string; alt: string }[]
 }
 
-function publicMedia(row: PublicMediaRow | null | undefined): { url: string; alt: string; width: number; height: number; mimeType: string } | null {
+function publicMedia(row: PublicMediaRow | null | undefined, locale: Locale = 'en'): { url: string; alt: string; width: number; height: number; mimeType: string } | null {
   if (!row) return null
   try {
     return {
       url: mediaUrl(row.objectKey),
-      alt: row.translations.find((t) => t.locale === 'en')?.alt ?? '',
+      alt: row.translations.find((t) => t.locale === locale)?.alt ?? row.translations.find((t) => t.locale === 'en')?.alt ?? '',
       width: row.width,
       height: row.height,
       mimeType: row.mimeType,
@@ -86,14 +90,14 @@ function publicMedia(row: PublicMediaRow | null | undefined): { url: string; alt
   }
 }
 
-const servicesFromCms = cachedPublic('public-services', async (): Promise<ServiceItem[]> => {
+const servicesFromCms = cachedPublic('public-services', async (locale: Locale): Promise<ServiceItem[]> => {
   const rows = await prisma.service.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     include: { translations: true },
   })
   return rows.flatMap((row) => {
-    const translation = row.translations.find((t) => t.locale === 'en')
+    const translation = localeTranslation(row.translations, locale)
     if (!translation) return []
     const features = Array.isArray(translation.features) ? translation.features : []
     const item = normalizeService({
@@ -111,7 +115,7 @@ const servicesFromCms = cachedPublic('public-services', async (): Promise<Servic
 
 export const getServices = cache(async (): Promise<ServiceItem[]> => {
   try {
-    const rows = await servicesFromCms()
+    const rows = await servicesFromCms(await getRequestLocale())
     return rows.length ? rows : STARTER_SERVICES
   } catch (error) {
     console.error('[content] services could not be loaded; using starter content', error)
@@ -119,7 +123,7 @@ export const getServices = cache(async (): Promise<ServiceItem[]> => {
   }
 })
 
-const projectsFromCms = cachedPublic('public-projects', async (): Promise<ProjectItem[]> => {
+const projectsFromCms = cachedPublic('public-projects', async (locale: Locale): Promise<ProjectItem[]> => {
   const rows = await prisma.project.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'desc' }],
@@ -130,16 +134,16 @@ const projectsFromCms = cachedPublic('public-projects', async (): Promise<Projec
     },
   })
   return rows.flatMap((row) => {
-    const translation = row.translations.find((t) => t.locale === 'en')
+    const translation = localeTranslation(row.translations, locale)
     if (!translation) return []
-    const serviceTranslation = row.service?.translations.find((t) => t.locale === 'en')
+    const serviceTranslation = row.service ? localeTranslation(row.service.translations, locale) : undefined
     const item = normalizeProject({
       id: row.id,
       slug: row.slug,
       title: translation.title,
       category: translation.category,
       shortDescription: translation.shortDescription,
-      featuredImage: publicMedia(row.coverMedia),
+      featuredImage: publicMedia(row.coverMedia, locale),
       externalUrl: row.externalUrl,
       showOnHome: row.showOnHome,
       service: row.service && serviceTranslation ? { slug: row.service.slug } : null,
@@ -152,7 +156,7 @@ const projectsFromCms = cachedPublic('public-projects', async (): Promise<Projec
 
 export const getProjects = cache(async (limit = 50): Promise<ProjectItem[]> => {
   try {
-    const rows = await projectsFromCms()
+    const rows = await projectsFromCms(await getRequestLocale())
     return rows.length ? rows.slice(0, Math.max(0, limit)) : STARTER_PROJECTS.slice(0, limit)
   } catch (error) {
     console.error('[content] projects could not be loaded; using starter content', error)
@@ -160,7 +164,7 @@ export const getProjects = cache(async (limit = 50): Promise<ProjectItem[]> => {
   }
 })
 
-const clientsFromCms = cachedPublic('public-clients', async (): Promise<ClientItem[]> => {
+const clientsFromCms = cachedPublic('public-clients', async (locale: Locale): Promise<ClientItem[]> => {
   const rows = await prisma.client.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
@@ -171,7 +175,7 @@ const clientsFromCms = cachedPublic('public-clients', async (): Promise<ClientIt
       id: row.id,
       name: row.name,
       website: row.website,
-      logo: publicMedia(row.logoMedia),
+      logo: publicMedia(row.logoMedia, locale),
     })
     return item ? [item] : []
   })
@@ -179,7 +183,7 @@ const clientsFromCms = cachedPublic('public-clients', async (): Promise<ClientIt
 
 export const getClients = cache(async (): Promise<ClientItem[]> => {
   try {
-    const rows = await clientsFromCms()
+    const rows = await clientsFromCms(await getRequestLocale())
     return rows.length ? rows : STARTER_CLIENTS
   } catch (error) {
     console.error('[content] clients could not be loaded; using starter content', error)
@@ -188,20 +192,20 @@ export const getClients = cache(async (): Promise<ClientItem[]> => {
 })
 export const getAboutPage = cache(async (): Promise<AboutData> => {
   try {
-    return (await loadAboutPage('en')) ?? DEFAULT_ABOUT
+    return (await loadAboutPage(await getRequestLocale())) ?? DEFAULT_ABOUT
   } catch (error) {
     console.error('[content] about page could not be loaded; using starter content', error)
     return DEFAULT_ABOUT
   }
 })
-const teamFromCms = cachedPublic('public-team', async (): Promise<TeamMember[]> => {
+const teamFromCms = cachedPublic('public-team', async (locale: Locale): Promise<TeamMember[]> => {
   const rows = await prisma.teamMember.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
     include: { translations: true, photoMedia: { include: { translations: true } } },
   })
   return rows.flatMap((row) => {
-    const translation = row.translations.find((t) => t.locale === 'en')
+    const translation = localeTranslation(row.translations, locale)
     if (!translation) return []
     const item = normalizeTeamMember({
       id: row.id,
@@ -210,7 +214,7 @@ const teamFromCms = cachedPublic('public-team', async (): Promise<TeamMember[]> 
       bio: translation.bio,
       email: row.email,
       linkedin: row.linkedin,
-      photo: publicMedia(row.photoMedia),
+      photo: publicMedia(row.photoMedia, locale),
     })
     return item ? [item] : []
   })
@@ -218,7 +222,7 @@ const teamFromCms = cachedPublic('public-team', async (): Promise<TeamMember[]> 
 
 export const getTeam = cache(async (): Promise<TeamMember[]> => {
   try {
-    return await teamFromCms()
+    return await teamFromCms(await getRequestLocale())
   } catch (error) {
     console.error('[content] team could not be loaded; using empty content', error)
     return []
@@ -226,7 +230,7 @@ export const getTeam = cache(async (): Promise<TeamMember[]> => {
 })
 export const getServicesPage = cache(async (): Promise<ServicesPageData> => {
   try {
-    return (await loadServicesPage('en')) ?? DEFAULT_SERVICES_PAGE
+    return (await loadServicesPage(await getRequestLocale())) ?? DEFAULT_SERVICES_PAGE
   } catch (error) {
     console.error('[content] services page could not be loaded; using starter content', error)
     return DEFAULT_SERVICES_PAGE
@@ -234,7 +238,7 @@ export const getServicesPage = cache(async (): Promise<ServicesPageData> => {
 })
 export const getProjectsPage = cache(async (): Promise<ProjectsPageData> => {
   try {
-    return (await loadProjectsPage('en')) ?? DEFAULT_PROJECTS_PAGE
+    return (await loadProjectsPage(await getRequestLocale())) ?? DEFAULT_PROJECTS_PAGE
   } catch (error) {
     console.error('[content] projects page could not be loaded; using starter content', error)
     return DEFAULT_PROJECTS_PAGE
@@ -242,7 +246,7 @@ export const getProjectsPage = cache(async (): Promise<ProjectsPageData> => {
 })
 export const getBlogPage = cache(async (): Promise<BlogPageData> => {
   try {
-    return (await loadBlogPage('en')) ?? DEFAULT_BLOG_PAGE
+    return (await loadBlogPage(await getRequestLocale())) ?? DEFAULT_BLOG_PAGE
   } catch (error) {
     console.error('[content] blog page could not be loaded; using starter content', error)
     return DEFAULT_BLOG_PAGE
@@ -250,7 +254,7 @@ export const getBlogPage = cache(async (): Promise<BlogPageData> => {
 })
 export const getContactPage = cache(async (): Promise<ContactPageData> => {
   try {
-    return (await loadContactPage('en')) ?? DEFAULT_CONTACT_PAGE
+    return (await loadContactPage(await getRequestLocale())) ?? DEFAULT_CONTACT_PAGE
   } catch (error) {
     console.error('[content] contact page could not be loaded; using starter content', error)
     return DEFAULT_CONTACT_PAGE
@@ -258,13 +262,14 @@ export const getContactPage = cache(async (): Promise<ContactPageData> => {
 })
 
 export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetail | null> => {
+  const locale = await getRequestLocale()
   let detail: ServiceDetail | null = null
   try {
-    const row = await cachedPublic('public-service-detail', async (serviceSlug: string) => prisma.service.findFirst({
+    const row = await cachedPublic('public-service-detail', async (serviceSlug: string, locale: Locale) => prisma.service.findFirst({
       where: { slug: serviceSlug, status: 'PUBLISHED', deletedAt: null },
       include: { translations: true },
-    }))(slug)
-    const translation = row?.translations.find((t) => t.locale === 'en')
+    }))(slug, locale)
+    const translation = row ? localeTranslation(row.translations, locale) : undefined
     if (row && translation) {
       const item = normalizeService({
         id: row.id,
@@ -276,7 +281,7 @@ export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetai
         showOnHome: row.showOnHome,
       })
       if (item) {
-        detail = await loadServiceDetailPage(`service-${row.id}` as `service-${string}`, item, 'en')
+        detail = await loadServiceDetailPage(`service-${row.id}` as `service-${string}`, item, locale)
           ?? normalizeServiceDetail({ ...item, features: item.features.map((text) => ({ text })) })
       }
     }
@@ -290,7 +295,7 @@ export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetai
   }
   if (!detail) return null
   if (detail.clientsServed.length === 0 && detail.clientsServedFallback.length) {
-    const clients = await getClients()
+    const clients = await getClients(locale)
     detail.clientsServed = detail.clientsServedFallback.map((f) => {
       const match = clients.find((c) => c.name.toLowerCase() === f.name.toLowerCase())
       return { name: f.name, note: f.note, logo: match?.logo ?? null, website: match?.website ?? '' }
@@ -306,8 +311,9 @@ export const getProjectsForService = cache(async (slug: string): Promise<Project
 })
 
 export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetail | null> => {
+  const locale = await getRequestLocale()
   try {
-    const row = await cachedPublic('public-project-detail', async (projectSlug: string) => prisma.project.findFirst({
+    const row = await cachedPublic('public-project-detail', async (projectSlug: string, locale: Locale) => prisma.project.findFirst({
       where: { slug: projectSlug, status: 'PUBLISHED', deletedAt: null },
       include: {
         translations: true,
@@ -318,10 +324,10 @@ export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetai
           include: { media: { include: { translations: true } } },
         },
       },
-    }))(slug)
-    const translation = row?.translations.find((t) => t.locale === 'en')
+    }))(slug, locale)
+    const translation = row ? localeTranslation(row.translations, locale) : undefined
     if (row && translation) {
-      const serviceTranslation = row.service?.translations.find((t) => t.locale === 'en')
+      const serviceTranslation = row.service ? localeTranslation(row.service.translations, locale) : undefined
       const ogMedia = translation.ogMediaId
         ? await prisma.mediaAsset.findFirst({ where: { id: translation.ogMediaId, deletedAt: null }, include: { translations: true } })
         : null
@@ -333,14 +339,14 @@ export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetai
         shortDescription: translation.shortDescription,
         description: Array.isArray(translation.paragraphs) ? translation.paragraphs.map(String).join('\\n\\n') : '',
         highlights: Array.isArray(translation.highlights) ? translation.highlights.map((text) => ({ text: String(text) })) : [],
-        featuredImage: publicMedia(row.coverMedia),
-        gallery: row.gallery.map((item) => ({ image: publicMedia(item.media) })),
+        featuredImage: publicMedia(row.coverMedia, locale),
+        gallery: row.gallery.map((item) => ({ image: publicMedia(item.media, locale) })),
         externalUrl: row.externalUrl,
         showOnHome: row.showOnHome,
         service: row.service && serviceTranslation ? { slug: row.service.slug, title: serviceTranslation.title } : null,
         status: row.state === 'IN_PROGRESS' ? 'in-progress' : 'completed',
         progress: row.progress,
-        seo: { metaTitle: translation.metaTitle, metaDescription: translation.metaDescription, ogImage: publicMedia(ogMedia) },
+        seo: { metaTitle: translation.metaTitle, metaDescription: translation.metaDescription, ogImage: publicMedia(ogMedia, locale) },
       })
       if (detail) return detail
     }
@@ -365,7 +371,7 @@ const asList = (p: BlogPostFull): BlogPost => {
 
 export const getAllPosts = cache(async (): Promise<BlogPost[]> => {
   try {
-    const posts = await loadPublicPosts('en')
+    const posts = await loadPublicPosts(await getRequestLocale())
     return posts.length ? posts : STARTER_POSTS.map(asList)
   } catch (error) {
     console.error('[content] blog posts could not be loaded; using starter content', error)
@@ -376,7 +382,7 @@ export const getAllPosts = cache(async (): Promise<BlogPost[]> => {
 /** Categories with the number of published articles in each; empty ones are hidden on the site. */
 export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
   try {
-    const categories = await loadPublicCategories('en')
+    const categories = await loadPublicCategories(await getRequestLocale())
     if (categories.length) return categories
     const posts = await loadPublicPosts('en')
     if (posts.length) return []
@@ -391,7 +397,7 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
 
 export const getPostBySlug = cache(async (slug: string): Promise<BlogPostFull | null> => {
   try {
-    const result = await loadPublicPostBySlug(slug, 'en')
+    const result = await loadPublicPostBySlug(slug, await getRequestLocale())
     if (result.state === 'found') return result.post
     if (result.state === 'missing') return null
   } catch (error) {
