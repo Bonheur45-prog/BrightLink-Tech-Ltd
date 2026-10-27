@@ -10,7 +10,7 @@ Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github
 | 3 | Collections: services, projects, clients, team, leads, subscribers, trash | **done (branch phase-3)** |
 | 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | **done (branch phase-4)** |
 | 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | **done (branch phase-5)** |
-| 6 | Public site reconnected: caching, parallax, smooth scroll, image sizes | |
+| 6 | Public site reconnected: caching, parallax, smooth scroll, image sizes | **in progress (branch phase-6)** |
 | 7 | Hardening: deploy, performance and SEO audit, tests | |
 
 ## What exists after Phase 1
@@ -65,6 +65,15 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
 - Smooth-scroll/parallax switches are stored but only take effect in Phase 6. Locale routing (`/fr`, `/rw`) is Phase 6;
   until then the site renders English.
 - CI: migrate deploy, seed ×2, typecheck, lint, 19 unit tests, build, start the standalone server and check key pages.
+
+## Phase 6 work in progress
+- First data-layer slice reconnects public services, projects, clients and team reads to published Phase 3 CMS records.
+  Queries exclude drafts and trashed records, select English translations, preserve the existing view-model normalization,
+  and use starter content when a collection has no published records or the database cannot be reached.
+- Public collection reads use the shared tagged cache, so CMS publish/save invalidation applies and external edits refresh
+  within the cache window.
+- Remaining: published page-builder documents, service/project detail content, published blog posts/categories, locale-aware
+  public reads, layout motion/accessibility behavior, and image sizing. No Phase 6 checks have been run yet.
 
 ## What Phase 5 added
 - `/admin/blog` (articles, create by title), `/admin/blog/<id>` editor, `/admin/blog/categories`. Articles go to Trash.
