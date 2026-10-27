@@ -6,7 +6,8 @@ import { normalizeClient, normalizeProject, normalizeProjectDetail, normalizeSer
 import { prisma } from '@/lib/db'
 import { mediaUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
-import { loadAboutPage, loadBlogPage, loadContactPage, loadHomePage, loadProjectsPage, loadServicesPage } from './public-pages'
+import { loadAboutPage, loadBlogPage, loadContactPage, loadHomePage, loadProjectsPage, loadServiceDetailPage, loadServicesPage } from './public-pages'
+import { loadPublicCategories, loadPublicPostBySlug, loadPublicPosts } from './public-blog'
 import { DEFAULT_BLOG_PAGE, STARTER_CATEGORIES, STARTER_POSTS } from './blogDefaults'
 import { DEFAULT_CONTACT_PAGE } from './contactDefaults'
 import { DEFAULT_PROJECTS_PAGE } from './projectDefaults'
@@ -257,9 +258,36 @@ export const getContactPage = cache(async (): Promise<ContactPageData> => {
 })
 
 export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetail | null> => {
-  const starter = STARTER_SERVICES.find((s) => s.slug === slug)
-  if (!starter) return null
-  const detail = normalizeServiceDetail({ ...starter, features: starter.features.map((text) => ({ text })) })
+  let detail: ServiceDetail | null = null
+  try {
+    const row = await cachedPublic('public-service-detail', async (serviceSlug: string) => prisma.service.findFirst({
+      where: { slug: serviceSlug, status: 'PUBLISHED', deletedAt: null },
+      include: { translations: true },
+    }))(slug)
+    const translation = row?.translations.find((t) => t.locale === 'en')
+    if (row && translation) {
+      const item = normalizeService({
+        id: row.id,
+        slug: row.slug,
+        title: translation.title,
+        shortDescription: translation.shortDescription,
+        features: Array.isArray(translation.features) ? translation.features.map((feature) => ({ text: String(feature) })) : [],
+        icon: row.icon,
+        showOnHome: row.showOnHome,
+      })
+      if (item) {
+        detail = await loadServiceDetailPage(`service-${row.id}` as `service-${string}`, item, 'en')
+          ?? normalizeServiceDetail({ ...item, features: item.features.map((text) => ({ text })) })
+      }
+    }
+  } catch (error) {
+    console.error('[content] service could not be loaded; using starter content', error)
+  }
+  if (!detail) {
+    const starter = STARTER_SERVICES.find((s) => s.slug === slug)
+    if (!starter) return null
+    detail = normalizeServiceDetail({ ...starter, features: starter.features.map((text) => ({ text })) })
+  }
   if (!detail) return null
   if (detail.clientsServed.length === 0 && detail.clientsServedFallback.length) {
     const clients = await getClients()
@@ -278,6 +306,47 @@ export const getProjectsForService = cache(async (slug: string): Promise<Project
 })
 
 export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetail | null> => {
+  try {
+    const row = await cachedPublic('public-project-detail', async (projectSlug: string) => prisma.project.findFirst({
+      where: { slug: projectSlug, status: 'PUBLISHED', deletedAt: null },
+      include: {
+        translations: true,
+        coverMedia: { include: { translations: true } },
+        service: { include: { translations: true } },
+        gallery: {
+          orderBy: { position: 'asc' },
+          include: { media: { include: { translations: true } } },
+        },
+      },
+    }))(slug)
+    const translation = row?.translations.find((t) => t.locale === 'en')
+    if (row && translation) {
+      const serviceTranslation = row.service?.translations.find((t) => t.locale === 'en')
+      const ogMedia = translation.ogMediaId
+        ? await prisma.mediaAsset.findFirst({ where: { id: translation.ogMediaId, deletedAt: null }, include: { translations: true } })
+        : null
+      const detail = normalizeProjectDetail({
+        id: row.id,
+        slug: row.slug,
+        title: translation.title,
+        category: translation.category,
+        shortDescription: translation.shortDescription,
+        description: Array.isArray(translation.paragraphs) ? translation.paragraphs.map(String).join('\\n\\n') : '',
+        highlights: Array.isArray(translation.highlights) ? translation.highlights.map((text) => ({ text: String(text) })) : [],
+        featuredImage: publicMedia(row.coverMedia),
+        gallery: row.gallery.map((item) => ({ image: publicMedia(item.media) })),
+        externalUrl: row.externalUrl,
+        showOnHome: row.showOnHome,
+        service: row.service && serviceTranslation ? { slug: row.service.slug, title: serviceTranslation.title } : null,
+        status: row.state === 'IN_PROGRESS' ? 'in-progress' : 'completed',
+        progress: row.progress,
+        seo: { metaTitle: translation.metaTitle, metaDescription: translation.metaDescription, ogImage: publicMedia(ogMedia) },
+      })
+      if (detail) return detail
+    }
+  } catch (error) {
+    console.error('[content] project could not be loaded; using starter content', error)
+  }
   const starter = STARTER_RAW_PROJECTS.find((p) => p.slug === slug)
   if (!starter) return null
   return normalizeProjectDetail({
@@ -294,12 +363,39 @@ const asList = (p: BlogPostFull): BlogPost => {
   return rest
 }
 
-export const getAllPosts = cache(async (): Promise<BlogPost[]> => STARTER_POSTS.map(asList))
+export const getAllPosts = cache(async (): Promise<BlogPost[]> => {
+  try {
+    const posts = await loadPublicPosts('en')
+    return posts.length ? posts : STARTER_POSTS.map(asList)
+  } catch (error) {
+    console.error('[content] blog posts could not be loaded; using starter content', error)
+    return STARTER_POSTS.map(asList)
+  }
+})
 
 /** Categories with the number of published articles in each; empty ones are hidden on the site. */
 export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
-  const posts = await getAllPosts()
-  return STARTER_CATEGORIES.map((c) => ({ ...c, count: posts.filter((p) => p.category?.slug === c.slug).length })).filter((c) => c.count > 0)
+  try {
+    const categories = await loadPublicCategories('en')
+    if (categories.length) return categories
+    const posts = await loadPublicPosts('en')
+    if (posts.length) return []
+  } catch (error) {
+    console.error('[content] blog categories could not be loaded; using starter content', error)
+  }
+  const posts = STARTER_POSTS.map(asList)
+  return STARTER_CATEGORIES
+    .map((category) => ({ ...category, count: posts.filter((post) => post.category?.slug === category.slug).length }))
+    .filter((category) => category.count > 0)
 })
 
-export const getPostBySlug = cache(async (slug: string): Promise<BlogPostFull | null> => STARTER_POSTS.find((p) => p.slug === slug) ?? null)
+export const getPostBySlug = cache(async (slug: string): Promise<BlogPostFull | null> => {
+  try {
+    const result = await loadPublicPostBySlug(slug, 'en')
+    if (result.state === 'found') return result.post
+    if (result.state === 'missing') return null
+  } catch (error) {
+    console.error('[content] blog post could not be loaded; using starter content', error)
+  }
+  return STARTER_POSTS.find((post) => post.slug === slug) ?? null
+})

@@ -12,6 +12,7 @@ import {
   normalizeHome,
   normalizeProjectsPage,
   normalizeServicesPage,
+  normalizeServiceDetail,
 } from './normalize'
 import type {
   AboutData,
@@ -20,6 +21,8 @@ import type {
   HomePageData,
   ProjectsPageData,
   ServicesPageData,
+  ServiceDetail,
+  ServiceItem,
 } from './types'
 import type { PageDoc, Section } from '@/lib/pages/model'
 
@@ -249,6 +252,33 @@ export async function loadContactPage(locale: Locale): Promise<ContactPageData |
     banner: banner(doc, locale, assets),
     form: { ...contact, backgroundImage: contact.image },
     subscribe: { ...newsletter, enabled: visible(newsletterSection) },
+    seo: seo(doc, locale, assets),
+  })
+}
+
+export async function loadServiceDetailPage(key: DocKey, service: ServiceItem, locale: Locale): Promise<ServiceDetail | null> {
+  const page = await publicPage(key, locale)
+  if (!page) return null
+  const { doc, assets } = page
+  const overview = fields(section(doc, 'textMedia'), locale, assets)
+  const featureSections = doc.sections.filter((s) => s.type === 'features')
+  const offerings = fields(featureSections[0], locale, assets)
+  const why = fields(featureSections[1], locale, assets)
+  const process = fields(featureSections[2], locale, assets)
+  const work = fields(section(doc, 'projects'), locale, assets)
+  const faq = fields(section(doc, 'faq'), locale, assets)
+  const cta = fields(section(doc, 'cta'), locale, assets)
+  return normalizeServiceDetail({
+    ...service,
+    features: service.features.map((text) => ({ text })),
+    banner: banner(doc, locale, assets),
+    overview: { ...overview, text: overview.body },
+    offerings,
+    why: { ...why, message: why.intro, points: featureItems(why.items) },
+    process: { ...process, steps: featureItems(process.items) },
+    work,
+    faqs: list(faq.items),
+    cta,
     seo: seo(doc, locale, assets),
   })
 }

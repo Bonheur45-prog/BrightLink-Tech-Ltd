@@ -76,7 +76,7 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
   Page reads resolve media-library ids and localized text, and keep starter content as the fallback when no publication exists.
 - CI passed for the first Phase 6 slice: migration, repeatable seed, typecheck, lint, unit tests, production build, and
   built-site smoke checks.
-- Remaining: service/project detail content, published blog posts/categories, route-level locale support, and image/motion work.
+- Remaining: route-level locale support, responsive image sizing, parallax/smooth-scroll behavior, and final verification.
 
 ## What Phase 5 added
 - `/admin/blog` (articles, create by title), `/admin/blog/<id>` editor, `/admin/blog/categories`. Articles go to Trash.
