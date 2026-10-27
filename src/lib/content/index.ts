@@ -6,6 +6,7 @@ import { normalizeClient, normalizeProject, normalizeProjectDetail, normalizeSer
 import { prisma } from '@/lib/db'
 import { mediaUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
+import { loadAboutPage, loadBlogPage, loadContactPage, loadHomePage, loadProjectsPage, loadServicesPage } from './public-pages'
 import { DEFAULT_BLOG_PAGE, STARTER_CATEGORIES, STARTER_POSTS } from './blogDefaults'
 import { DEFAULT_CONTACT_PAGE } from './contactDefaults'
 import { DEFAULT_PROJECTS_PAGE } from './projectDefaults'
@@ -51,7 +52,14 @@ export type * from './types'
 // Phase 2: settings, header and footer now come from the database (see ./site.ts).
 export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => loadSiteSettings('en'))
 export const getHeader = cache(async (): Promise<HeaderData> => loadHeader('en'))
-export const getHomePage = cache(async (): Promise<HomePageData> => DEFAULT_HOME)
+export const getHomePage = cache(async (): Promise<HomePageData> => {
+  try {
+    return (await loadHomePage('en')) ?? DEFAULT_HOME
+  } catch (error) {
+    console.error('[content] home page could not be loaded; using starter content', error)
+    return DEFAULT_HOME
+  }
+}))
 export const getFooter = cache(async (): Promise<FooterData> => loadFooter('en'))
 
 type PublicMediaRow = {
@@ -177,7 +185,14 @@ export const getClients = cache(async (): Promise<ClientItem[]> => {
     return STARTER_CLIENTS
   }
 })
-export const getAboutPage = cache(async (): Promise<AboutData> => DEFAULT_ABOUT)
+export const getAboutPage = cache(async (): Promise<AboutData> => {
+  try {
+    return (await loadAboutPage('en')) ?? DEFAULT_ABOUT
+  } catch (error) {
+    console.error('[content] about page could not be loaded; using starter content', error)
+    return DEFAULT_ABOUT
+  }
+}))
 const teamFromCms = cachedPublic('public-team', async (): Promise<TeamMember[]> => {
   const rows = await prisma.teamMember.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
@@ -208,10 +223,38 @@ export const getTeam = cache(async (): Promise<TeamMember[]> => {
     return []
   }
 })
-export const getServicesPage = cache(async (): Promise<ServicesPageData> => DEFAULT_SERVICES_PAGE)
-export const getProjectsPage = cache(async (): Promise<ProjectsPageData> => DEFAULT_PROJECTS_PAGE)
-export const getBlogPage = cache(async (): Promise<BlogPageData> => DEFAULT_BLOG_PAGE)
-export const getContactPage = cache(async (): Promise<ContactPageData> => DEFAULT_CONTACT_PAGE)
+export const getServicesPage = cache(async (): Promise<ServicesPageData> => {
+  try {
+    return (await loadServicesPage('en')) ?? DEFAULT_SERVICES_PAGE
+  } catch (error) {
+    console.error('[content] services page could not be loaded; using starter content', error)
+    return DEFAULT_SERVICES_PAGE
+  }
+})
+export const getProjectsPage = cache(async (): Promise<ProjectsPageData> => {
+  try {
+    return (await loadProjectsPage('en')) ?? DEFAULT_PROJECTS_PAGE
+  } catch (error) {
+    console.error('[content] projects page could not be loaded; using starter content', error)
+    return DEFAULT_PROJECTS_PAGE
+  }
+})
+export const getBlogPage = cache(async (): Promise<BlogPageData> => {
+  try {
+    return (await loadBlogPage('en')) ?? DEFAULT_BLOG_PAGE
+  } catch (error) {
+    console.error('[content] blog page could not be loaded; using starter content', error)
+    return DEFAULT_BLOG_PAGE
+  }
+})
+export const getContactPage = cache(async (): Promise<ContactPageData> => {
+  try {
+    return (await loadContactPage('en')) ?? DEFAULT_CONTACT_PAGE
+  } catch (error) {
+    console.error('[content] contact page could not be loaded; using starter content', error)
+    return DEFAULT_CONTACT_PAGE
+  }
+})
 
 export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetail | null> => {
   const starter = STARTER_SERVICES.find((s) => s.slug === slug)

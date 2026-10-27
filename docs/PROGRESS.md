@@ -72,8 +72,11 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
   and use starter content when a collection has no published records or the database cannot be reached.
 - Public collection reads use the shared tagged cache, so CMS publish/save invalidation applies and external edits refresh
   within the cache window.
-- Remaining: published page-builder documents, service/project detail content, published blog posts/categories, locale-aware
-  public reads, layout motion/accessibility behavior, and image sizing. No Phase 6 checks have been run yet.
+- Published page-builder documents now feed the existing home, about, services, projects, blog, and contact view models.
+  Page reads resolve media-library ids and localized text, and keep starter content as the fallback when no publication exists.
+- CI passed for the first Phase 6 slice: migration, repeatable seed, typecheck, lint, unit tests, production build, and
+  built-site smoke checks.
+- Remaining: service/project detail content, published blog posts/categories, route-level locale support, and image/motion work.
 
 ## What Phase 5 added
 - `/admin/blog` (articles, create by title), `/admin/blog/<id>` editor, `/admin/blog/categories`. Articles go to Trash.
