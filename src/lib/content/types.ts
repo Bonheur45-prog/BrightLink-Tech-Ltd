@@ -176,6 +176,7 @@ export type ServiceItem = {
   shortDescription: string
   features: string[]
   showOnHome: boolean
+  image: MediaRef | null
 }
 
 export type ProjectItem = {

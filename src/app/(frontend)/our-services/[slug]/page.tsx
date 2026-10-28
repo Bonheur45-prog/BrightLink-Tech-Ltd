@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     settings,
     title: service.seo.metaTitle || service.title,
     description: service.seo.metaDescription || service.shortDescription,
-    image: service.seo.ogImage ?? service.banner.image ?? service.overview.image,
+    image: service.seo.ogImage ?? service.banner.image ?? service.overview.image ?? service.image,
     path: service.url,
   })
 }
@@ -44,7 +44,7 @@ export default async function ServicePage({ params }: Props) {
       name: service.title,
       description: service.seo.metaDescription || service.shortDescription,
       path: service.url,
-      image: (service.banner.image ?? service.overview.image)?.url,
+      image: (service.banner.image ?? service.overview.image ?? service.image)?.url,
     }),
     breadcrumbJsonLd([
       { name: 'Home', path: '/' },
@@ -61,7 +61,7 @@ export default async function ServicePage({ params }: Props) {
         eyebrow={service.title}
         title={service.banner.heading}
         intro={service.banner.intro}
-        image={service.banner.image}
+        image={service.banner.image ?? service.image}
         crumbs={[
           { label: 'Home', href: '/' },
           { label: 'Our Services', href: '/our-services' },

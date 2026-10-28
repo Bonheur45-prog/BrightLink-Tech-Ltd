@@ -349,6 +349,7 @@ export function normalizeService(raw: Raw): ServiceItem | null {
     shortDescription: str(raw.shortDescription),
     features: Array.isArray(raw.features) ? raw.features.map((f: Raw) => str(f?.text)).filter(Boolean) : [],
     showOnHome: bool(raw.showOnHome, true),
+    image: toMedia(raw.image, 'card'),
   }
 }
 

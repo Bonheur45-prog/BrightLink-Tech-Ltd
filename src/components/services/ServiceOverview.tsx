@@ -8,7 +8,7 @@ import type { ServiceDetail } from '@/lib/content/types'
 
 /** Introduction of the service: text and ticked highlights on the left, a picture space on the right. */
 export function ServiceOverview({ service }: { service: ServiceDetail }) {
-  const { overview, image } = { overview: service.overview, image: service.overview.image }
+  const { overview, image } = { overview: service.overview, image: service.overview.image ?? service.image }
   if (!overview.heading && overview.paragraphs.length === 0) return null
   return (
     <section id="overview" aria-labelledby="overview-heading" className="relative overflow-hidden bg-white py-20 lg:py-28">

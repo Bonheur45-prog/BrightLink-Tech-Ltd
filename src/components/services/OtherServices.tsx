@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ArrowRightIcon, IconByKey } from '@/components/ui/Icons'
@@ -17,8 +18,8 @@ export function OtherServices({ services, heading = 'Explore our other services'
                 href={s.url}
                 className="group flex h-full items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 transition duration-300 hover:-translate-y-1 hover:border-brand-blue/30 hover:shadow-xl hover:shadow-brand-navy/10"
               >
-                <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-brand-warm text-brand-navy-deep">
-                  <IconByKey name={s.icon} width={24} height={24} />
+                <span className="relative grid size-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-brand-warm text-brand-navy-deep">
+                  {s.image ? <Image src={s.image.url} alt={s.image.alt || `${s.title} service cover`} fill sizes="48px" className="object-cover" /> : <IconByKey name={s.icon} width={24} height={24} />}
                 </span>
                 <span className="flex-1 font-display text-lg font-semibold text-brand-navy-deep">{s.title}</span>
                 <ArrowRightIcon width={18} height={18} className="text-brand-blue transition group-hover:translate-x-1.5" />
