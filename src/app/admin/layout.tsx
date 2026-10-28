@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import type { ReactNode } from 'react';
 import '@/styles/admin-tokens.css';
 import '@/styles/admin.css';
+import { allFontVariables } from '@/styles/fonts';
 
 const adminFont = Inter({ subsets: ['latin'], variable: '--font-admin-loaded', display: 'swap' });
 
@@ -17,7 +18,7 @@ export const dynamic = 'force-dynamic';
 
 export default function AdminRootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" className={adminFont.variable}>
+    <html lang="en" className={`${adminFont.variable} ${allFontVariables}`}>
       <body>{children}</body>
     </html>
   );

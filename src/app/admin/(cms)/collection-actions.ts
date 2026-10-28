@@ -16,10 +16,10 @@ import { prisma } from '@/lib/db';
 // Create / save / trash / restore / delete for services, projects, clients and team members.
 // Every change refreshes the public site; slug renames leave a redirect behind so old links keep working.
 
-export type Kind = 'services' | 'projects' | 'clients' | 'team';
+export type Kind = 'services' | 'projects' | 'clients' | 'team' | 'posts';
 export type EntityFormState = { status: 'idle' } | { status: 'saved'; savedAt: number } | { status: 'error'; message: string; errors: Errors };
 
-const KINDS: Kind[] = ['services', 'projects', 'clients', 'team'];
+const KINDS: Kind[] = ['services', 'projects', 'clients', 'team', 'posts'];
 const ID = /^[a-z0-9]{10,40}$/;
 const fail = (errors: Errors, message = 'Some fields need attention.'): EntityFormState => ({ status: 'error', message, errors });
 const PUBLIC_PATH = { services: '/our-services', projects: '/our-projects' } as const;
@@ -52,7 +52,7 @@ async function renameRedirect(tx: Prisma.TransactionClient, base: string, oldSlu
 
 export async function createEntity(kind: Kind, formData: FormData) {
   const user = await requireUser();
-  if (!KINDS.includes(kind)) redirect('/admin');
+  if (!KINDS.includes(kind) || kind === 'posts') redirect('/admin'); // articles: createPost in blog/actions.ts
   const name = String(formData.get('name') ?? '').trim().slice(0, 120);
   if (!name) redirect(`/admin/${kind}?error=missing-title`);
   let id: string;
@@ -164,7 +164,7 @@ export async function saveTeam(id: string, _s: EntityFormState, formData: FormDa
 
 function model(kind: Kind) {
   // The four models share id + deletedAt, which is all the trash needs.
-  const m = { services: prisma.service, projects: prisma.project, clients: prisma.client, team: prisma.teamMember }[kind];
+  const m = { services: prisma.service, projects: prisma.project, clients: prisma.client, team: prisma.teamMember, posts: prisma.post }[kind];
   return m as unknown as {
     updateMany(args: { where: { id: string }; data: { deletedAt: Date | null; status?: 'DRAFT' } }): Promise<unknown>;
     deleteMany(args: { where: { id: string; deletedAt: { not: null } } }): Promise<{ count: number }>;
@@ -177,7 +177,7 @@ export async function trashEntity(kind: Kind, id: string) {
   await model(kind).updateMany({ where: { id }, data: { deletedAt: new Date() } });
   await audit(user.id, `${kind}.trash`, kind, id);
   refreshPublicSite();
-  redirect(`/admin/${kind}?notice=trashed`);
+  redirect(`/admin/${kind === 'posts' ? 'blog' : kind}?notice=trashed`);
 }
 
 export async function restoreEntity(kind: Kind, id: string) {
@@ -192,7 +192,12 @@ export async function restoreEntity(kind: Kind, id: string) {
 export async function deleteEntity(kind: Kind, id: string) {
   const user = await requireUser();
   if (!KINDS.includes(kind) || !ID.test(id)) redirect('/admin');
-  await model(kind).deleteMany({ where: { id, deletedAt: { not: null } } });
+  const { count } = await model(kind).deleteMany({ where: { id, deletedAt: { not: null } } });
+  if (count && kind === 'services') {
+    // the service's own page and its version history go with it
+    await prisma.page.deleteMany({ where: { key: `service-${id}` } });
+    await prisma.contentVersion.deleteMany({ where: { entityType: 'page', entityKey: `service-${id}` } });
+  }
   await audit(user.id, `${kind}.delete`, kind, id);
   redirect('/admin/trash?notice=deleted-entity');
 }

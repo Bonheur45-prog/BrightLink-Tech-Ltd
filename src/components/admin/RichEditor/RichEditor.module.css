@@ -1,0 +1,32 @@
+.editor { border: 1px solid var(--line); background: var(--white); }
+.toolbar { position: sticky; top: 0; z-index: 4; display: flex; flex-wrap: wrap; align-items: center; gap: 2px; padding: var(--space-2); background: var(--plaster); border-bottom: 1px solid var(--line); }
+.tool { min-width: 2rem; min-height: 2rem; padding: 0 var(--space-2); border: 1px solid transparent; background: transparent; font: inherit; font-size: var(--step--1); cursor: pointer; }
+.tool:hover { border-color: var(--line); background: var(--white); }
+.tool[aria-pressed='true'] { background: var(--chocolate-800); color: var(--white); }
+.tool:disabled { opacity: 0.4; cursor: default; }
+.select { min-height: 2rem; border: 1px solid var(--line); background: var(--white); font: inherit; font-size: var(--step--1); }
+.sep { width: 1px; height: 1.5rem; margin: 0 var(--space-1); background: var(--line); }
+.loading { padding: var(--space-5); color: var(--text-muted); border: 1px solid var(--line); }
+.content { min-height: 24rem; padding: var(--space-5); outline: none; line-height: 1.7; max-width: 46rem; }
+.content:focus-visible { box-shadow: inset 0 0 0 2px var(--gold-500); }
+.content > * + * { margin-top: 0.9em; }
+.content h2 { font-size: 1.6rem; font-weight: 700; }
+.content h3 { font-size: 1.3rem; font-weight: 700; }
+.content h4 { font-size: 1.1rem; font-weight: 700; }
+.content ul { list-style: disc; padding-left: 1.5rem; }
+.content ol { list-style: decimal; padding-left: 1.5rem; }
+.content blockquote { padding-left: 1rem; border-left: 3px solid var(--gold-500); font-style: italic; }
+.content pre { padding: 1rem; background: #0f1b33; color: #e6edf7; overflow-x: auto; font-size: 0.9rem; }
+.content code { font-family: ui-monospace, monospace; }
+.content a { color: #0057a3; text-decoration: underline; }
+.content img { max-width: 100%; height: auto; }
+.content img:global(.ProseMirror-selectednode) { outline: 3px solid var(--gold-500); }
+.content table { width: 100%; border-collapse: collapse; }
+.content th, .content td { border: 1px solid var(--line); padding: 0.4rem 0.6rem; vertical-align: top; }
+.content th { background: var(--plaster); text-align: left; }
+.content :global(.selectedCell) { background: #fff3c4; }
+.content aside { padding: 0.8rem 1rem; border-left: 4px solid #0057a3; background: #e3ebf8; }
+.content aside[data-tone='tip'] { border-color: #2f6b3a; background: #ebf4ec; }
+.content aside[data-tone='warning'] { border-color: #a85d00; background: #fdf3e1; }
+.content hr { border: 0; border-top: 1px solid var(--line); }
+.content p:global(.is-editor-empty):first-child::before { content: 'Start writing…'; color: var(--text-muted); float: left; height: 0; pointer-events: none; }

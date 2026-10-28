@@ -8,8 +8,8 @@ Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github
 | 2 | Site settings, header, footer, SEO defaults, languages, curated font list | **done (branch phase-2)** |
 
 | 3 | Collections: services, projects, clients, team, leads, subscribers, trash | **done (branch phase-3)** |
-| 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | |
-| 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | |
+| 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | **done (branch phase-4)** |
+| 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | **done (branch phase-5)** |
 | 6 | Public site reconnected: caching, parallax, smooth scroll, image sizes | |
 | 7 | Hardening: deploy, performance and SEO audit, tests | |
 
@@ -65,6 +65,38 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
 - Smooth-scroll/parallax switches are stored but only take effect in Phase 6. Locale routing (`/fr`, `/rw`) is Phase 6;
   until then the site renders English.
 - CI: migrate deploy, seed ×2, typecheck, lint, 19 unit tests, build, start the standalone server and check key pages.
+
+## What Phase 5 added
+- `/admin/blog` (articles, create by title), `/admin/blog/<id>` editor, `/admin/blog/categories`. Articles go to Trash.
+- Tiptap 3 editor (`src/components/admin/RichEditor`, loaded only on the article screen): headings H2–H4, bold/italic/
+  underline/strike, links, lists, quote, code block, note/tip/warning boxes, line, photos from the media library (with
+  caption), tables, alignment, brand colours, highlight, curated fonts, undo/redo. Per-language article (language buttons).
+- On save the server renders the editor JSON to HTML with a strict whitelist (`src/lib/blog/render.ts`: escaped text,
+  safe links only, palette colours only, curated fonts only, library photos only with srcset/size/alt), plus the table
+  of contents, the fonts used (`PostTranslation.fonts`) and reading time. Visitors never download the editor.
+- Publishing: draft / publish / unpublish, publication date (future = scheduled), featured, author (team member or
+  "BrightLink Team"), tags, cover. Publishing is refused if the English summary or text is missing or a photo has no alt.
+- SEO assistant (live): focus keyword in title / description / opening / address, title and description length, word
+  count, sub-headings, internal links, cover, photo descriptions; Google preview; canonical, hide from Google, share image.
+- Slug renames (articles and categories) create redirects. Categories can only be deleted when empty.
+- Seed adds the 5 starter categories and the 7 starter articles (converted to editor documents).
+- RSS `/blog/feed.xml` now reads published articles from the database (starter articles if none).
+- The blog pages themselves still show starter content until Phase 6.
+
+## What Phase 4 added
+- Section catalogue `src/lib/pages/catalogue.ts`: 17 types (hero, banner, highlights, textMedia, services, projects,
+  features, mission, glance, clients, team, faq, cta, contact, newsletter, posts, richText), each with layouts
+  (variants) and a field schema. Background per section: page colour / tint / dark / photo (+ parallax, darkening).
+- Page JSON `{ sections: [{ id, type, variant, visible, background, data }], seo: { title, description, ogImage, noIndex } }`;
+  text values are `{ en, fr, rw }`. Parser/checks: `src/lib/pages/model.ts` (unknown types dropped, values clamped).
+- Starter pages `src/lib/pages/defaults.ts`, built from the existing starter content (home, about, services, projects,
+  blog, contact, and one per service from its name/description): the editor shows them until a page is published.
+- `/admin/pages` + `/admin/pages/<key>` (keys: home, about, services, projects, blog, contact, `service-<serviceId>`):
+  generic schema-driven editor (add/reorder/hide/duplicate/remove sections and items, language switcher), SEO panel
+  with Google preview + checklist, draft/publish bar, version history. Store: `src/lib/cms/drafts.ts` (now also pages).
+- Publishing is refused when a visible photo has no English alt text, or required text / links are missing.
+- Deleting a service for good also deletes its page and versions. `ServiceTranslation.content` is no longer used.
+- The public pages are NOT yet drawn from these sections: Phase 6 maps each section type to the components.
 
 ## What Phase 3 added
 - `/admin/services`, `/admin/projects`, `/admin/clients`, `/admin/team`: list → create by name → editor (texts per
