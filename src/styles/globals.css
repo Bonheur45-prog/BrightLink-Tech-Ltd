@@ -4,7 +4,6 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
     -webkit-text-size-adjust: 100%;
   }
   body {
@@ -87,7 +86,7 @@
 /* Respect "reduce motion": no zoom, no movement, text simply appears */
 @media (prefers-reduced-motion: reduce) {
   html {
-    scroll-behavior: auto;
+    scroll-behavior: auto !important;
   }
   .hero-reveal {
     animation: none;

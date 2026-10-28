@@ -16,6 +16,7 @@ import {
   SocialIcon,
 } from '@/components/ui/Icons'
 import type { HeaderData, MediaRef, NavItem, SocialLink } from '@/lib/content/types'
+import { localeNames, type Locale } from '@/i18n/config'
 
 type Props = {
   company: {
@@ -27,13 +28,17 @@ type Props = {
     socials: SocialLink[]
   }
   header: HeaderData
+  locale: Locale
+  enabledLocales: Locale[]
   heroEnabled: boolean
 }
 
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
-export function HeaderShell({ company, header, heroEnabled }: Props) {
+export function HeaderShell({ company, header, locale, enabledLocales, heroEnabled }: Props) {
   const pathname = usePathname()
+  const routePath = pathname.replace(/^\/(fr|rw)(?=\/|$)/, '') || '/'
+  const localeHref = (target: Locale) => target === 'en' ? routePath + '?locale=en' : '/' + target + (routePath === '/' ? '' : routePath)
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openMenu, setOpenMenu] = useState<number | null>(null)
@@ -43,7 +48,7 @@ export function HeaderShell({ company, header, heroEnabled }: Props) {
   const menuBtnRef = useRef<HTMLButtonElement>(null)
 
   // The header floats over the hero on the home page only; every other page gets a solid header.
-  const overlay = pathname === '/' && header.transparentOnHero && heroEnabled
+  const overlay = routePath === '/' && header.transparentOnHero && heroEnabled
   const solid = !overlay || scrolled
 
   /* ---- scroll state */
@@ -102,7 +107,7 @@ export function HeaderShell({ company, header, heroEnabled }: Props) {
   const isActive = (item: { url: string; children?: { url: string }[] }): boolean => {
     if (item.children?.length) return item.children.some((c) => isActive(c))
     if (!item.url || !item.url.startsWith('/')) return false
-    return item.url === '/' ? pathname === '/' : pathname === item.url || pathname.startsWith(`${item.url}/`)
+    return item.url === '/' ? routePath === '/' : routePath === item.url || routePath.startsWith(item.url + '/')
   }
 
   /* ---- top bar content */
@@ -278,6 +283,11 @@ export function HeaderShell({ company, header, heroEnabled }: Props) {
           </nav>
 
           <div className="flex items-center gap-3">
+            {enabledLocales.length > 1 && (
+              <nav aria-label="Language" className="hidden items-center gap-1 lg:flex">
+                {enabledLocales.map((target) => <a key={target} href={localeHref(target)} lang={target} aria-current={locale === target ? 'page' : undefined} className={`rounded-md px-2 py-1 text-xs font-semibold uppercase transition ${linkTone} ${locale === target ? 'underline underline-offset-4' : ''}`}>{target}</a>)}
+              </nav>
+            )}
             {header.cta && (
               <SmartLink
                 href={header.cta.url}
@@ -412,6 +422,12 @@ export function HeaderShell({ company, header, heroEnabled }: Props) {
                 )
               })}
             </ul>
+
+            {enabledLocales.length > 1 && (
+              <nav aria-label="Language" className="mt-8 flex items-center gap-3 border-t border-white/10 pt-5">
+                {enabledLocales.map((target) => <a key={target} href={localeHref(target)} lang={target} aria-current={locale === target ? 'page' : undefined} className={`rounded-lg px-3 py-2 text-sm font-semibold ${locale === target ? 'bg-white/10 text-brand-yellow' : 'text-white/75 hover:text-white'}`}>{localeNames[target]}</a>)}
+              </nav>
+            )}
 
             {header.cta && (
               <SmartLink href={header.cta.url} newTab={header.cta.newTab} className="btn btn-primary mt-6 w-full">
