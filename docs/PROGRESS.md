@@ -10,7 +10,7 @@ Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github
 | 3 | Collections: services, projects, clients, team, leads, subscribers, trash | **done (branch phase-3)** |
 | 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | **done (branch phase-4)** |
 | 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | **done (branch phase-5)** |
-| 6 | Public site reconnected: CMS data, locale routes, caching, motion, responsive images | **implementation complete; CI verification in progress** |
+| 6 | Public site reconnected: CMS data, locale routes, caching, motion, responsive images | **done on branch phase-6; CI run 17 passed** |
 | 7 | Hardening: deploy, performance and SEO audit, tests | |
 
 ## What exists after Phase 1
@@ -78,7 +78,7 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
   built-site smoke checks.
 - Locale routes `/fr` and `/rw` rewrite to the existing page tree, retain the selection across internal links, and expose a language switcher for enabled languages. Page, collection, media, settings, header/footer, and blog reads use the request locale with English fallback.
 - The public layout uses the request locale for the document language and honors the Site settings smooth-scroll and parallax switches, while respecting reduced-motion preferences. Public image components include responsive `sizes` values and media references preserve intrinsic dimensions.
-- Final verification is the Phase 6 CI workflow; merge into phase-5 only after all checks pass.
+- GitHub Actions CI run 17 passed migration, repeatable seed, typecheck, lint, unit tests, production build, and built-site smoke checks. Review and merge this branch into phase-5 when ready.
 
 ## What Phase 5 added
 - `/admin/blog` (articles, create by title), `/admin/blog/<id>` editor, `/admin/blog/categories`. Articles go to Trash.

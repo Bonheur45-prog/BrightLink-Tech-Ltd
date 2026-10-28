@@ -39,6 +39,8 @@ export function middleware(request: NextRequest) {
     response.cookies.set(LOCALE_COOKIE, prefix, { path: '/', sameSite: 'lax', maxAge: 31536000 });
     return response;
   }
+  // Locale cookies apply to pages, never to files such as logos, icons, or the site manifest.
+  if (/\.[^/]+$/.test(pathname)) return NextResponse.next();
   if (locale && isLocale(locale) && locale !== 'en') {
     const localized = new URL(request.url);
     localized.pathname = '/' + locale + (pathname === '/' ? '' : pathname);
