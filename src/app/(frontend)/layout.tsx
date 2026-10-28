@@ -9,10 +9,8 @@ import { getSiteSettings } from '@/lib/content'
 import { getServerUrl, organizationJsonLd, websiteJsonLd } from '@/lib/seo'
 import { fontVar, isFontKey } from '@/lib/fonts'
 import { allFontVariables } from '@/styles/fonts'
+import { getRequestLocale } from '@/lib/content/request-locale'
 
-
-// Content comes from the CMS and is revalidated the moment an editor saves in /admin.
-export const dynamic = 'force-dynamic'
 
 export const viewport: Viewport = {
   themeColor: '#001a45',
@@ -44,7 +42,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function FrontendLayout({ children }: { children: ReactNode }) {
-  const settings = await getSiteSettings()
+  const [settings, locale] = await Promise.all([getSiteSettings(), getRequestLocale()])
   // Site-wide fonts chosen in Site settings. Only these two are used by the page, so only their files download.
   const fonts = {
     '--font-heading': `var(${fontVar(isFontKey(settings.headingFont) ? settings.headingFont : 'outfit')})`,
@@ -52,7 +50,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
   } as CSSProperties
 
   return (
-    <html lang="en" className={allFontVariables} style={fonts}>
+    <html lang={locale} data-parallax={settings.parallax ? 'true' : 'false'} className={allFontVariables + (settings.smoothScroll ? ' scroll-smooth' : '')} style={fonts}>
       <body>
         <JsonLd data={[organizationJsonLd(settings), websiteJsonLd(settings)]} />
         <a

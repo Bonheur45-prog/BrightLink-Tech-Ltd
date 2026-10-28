@@ -14,6 +14,7 @@ export function ParallaxBg({ children, className = '' }: { children: ReactNode; 
     const el = layer.current
     const section = el?.parentElement
     if (!el || !section) return
+    if (document.documentElement.dataset.parallax !== 'true') return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     let frame = 0
