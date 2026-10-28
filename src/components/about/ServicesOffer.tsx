@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ArrowRightIcon, IconByKey } from '@/components/ui/Icons'
@@ -20,8 +21,8 @@ export function ServicesOffer({ data, services }: { data: AboutData['services'];
                 href={s.url}
                 className="group flex h-full items-start gap-5 rounded-2xl bg-white p-6 shadow-lg shadow-brand-navy/5 ring-1 ring-brand-navy/5 transition duration-300 hover:-translate-y-1 hover:shadow-2xl hover:shadow-brand-navy/10"
               >
-                <span className={`grid size-14 shrink-0 place-items-center rounded-2xl shadow-lg ${TILES[i % TILES.length]}`}>
-                  <IconByKey name={s.icon} width={26} height={26} />
+                <span className="relative grid size-14 shrink-0 place-items-center overflow-hidden rounded-2xl bg-slate-100 shadow-lg">
+                  {s.image ? <Image src={s.image.url} alt={s.image.alt || `${s.title} service cover`} fill sizes="56px" className="object-cover" /> : <span className={`grid size-full place-items-center ${TILES[i % TILES.length]}`}><IconByKey name={s.icon} width={26} height={26} /></span>}
                 </span>
                 <span className="flex-1">
                   <span className="block font-display text-xl font-semibold text-brand-navy-deep">{s.title}</span>

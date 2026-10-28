@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ArrowRightIcon, CheckIcon, IconByKey } from '@/components/ui/Icons'
@@ -22,9 +23,15 @@ export function ServiceCards({ eyebrow, heading, intro, services }: { eyebrow: s
             <Reveal as="li" key={s.id} delay={(i % 2) * 110}>
               <article className="group relative flex h-full flex-col rounded-3xl bg-white p-8 shadow-lg shadow-brand-navy/8 ring-1 ring-brand-navy/10 transition duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-brand-navy/15">
                 <span aria-hidden className="absolute inset-x-8 top-0 h-1 rounded-b-full bg-brand-link opacity-0 transition group-hover:opacity-100" />
-                <span className={`grid size-16 place-items-center rounded-2xl shadow-lg ${TILES[i % TILES.length]}`}>
-                  <IconByKey name={s.icon} width={30} height={30} />
-                </span>
+                <div className="relative aspect-[16/9] overflow-hidden rounded-2xl bg-slate-100">
+                  {s.image ? (
+                    <Image src={s.image.url} alt={s.image.alt || `${s.title} service cover`} fill sizes="(min-width: 768px) 45vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" />
+                  ) : (
+                    <span className={`absolute inset-0 grid place-items-center ${TILES[i % TILES.length]}`}>
+                      <IconByKey name={s.icon} width={38} height={38} />
+                    </span>
+                  )}
+                </div>
                 <h3 className="mt-6 font-display text-2xl font-semibold">{s.title}</h3>
                 <p className="mt-3 leading-relaxed text-slate-600">{s.shortDescription}</p>
                 {s.features.length > 0 && (

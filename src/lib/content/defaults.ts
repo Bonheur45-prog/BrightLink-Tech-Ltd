@@ -96,6 +96,7 @@ export const STARTER_SERVICES: ServiceItem[] = STARTER_SERVICES_RAW.map((x, i) =
   shortDescription: x.shortDescription,
   features: x.features,
   showOnHome: true,
+  image: null,
 }))
 
 export const DEFAULT_HEADER: HeaderData = {

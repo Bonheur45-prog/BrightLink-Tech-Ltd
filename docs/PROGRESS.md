@@ -78,6 +78,7 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
   built-site smoke checks.
 - Locale routes `/fr` and `/rw` rewrite to the existing page tree, retain the selection across internal links, and expose a language switcher for enabled languages. Page, collection, media, settings, header/footer, and blog reads use the request locale with English fallback.
 - The public layout uses the request locale for the document language and honors the Site settings smooth-scroll and parallax switches, while respecting reduced-motion preferences. Public image components include responsive `sizes` values and media references preserve intrinsic dimensions.
+- Service cover media now flows from the published CMS record through the public service view model. Covers render on service overview cards, the homepage and About service tiles, related-service tiles, and as a fallback on service detail banners/overview images when no page-builder image is set; existing page-builder artwork keeps precedence.
 - GitHub Actions CI run 17 passed migration, repeatable seed, typecheck, lint, unit tests, production build, and built-site smoke checks. Review and merge this branch into phase-5 when ready.
 
 ## What Phase 5 added

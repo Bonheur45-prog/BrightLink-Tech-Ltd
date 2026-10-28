@@ -94,7 +94,7 @@ const servicesFromCms = cachedPublic('public-services', async (locale: Locale): 
   const rows = await prisma.service.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
     orderBy: [{ sortOrder: 'asc' }, { createdAt: 'asc' }],
-    include: { translations: true },
+    include: { translations: true, coverMedia: { include: { translations: true } } },
   })
   return rows.flatMap((row) => {
     const translation = localeTranslation(row.translations, locale)
@@ -108,6 +108,7 @@ const servicesFromCms = cachedPublic('public-services', async (locale: Locale): 
       features: features.map((feature) => ({ text: String(feature) })),
       icon: row.icon,
       showOnHome: row.showOnHome,
+      image: publicMedia(row.coverMedia, locale),
     })
     return item ? [item] : []
   })
@@ -269,7 +270,7 @@ export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetai
   try {
     const row = await cachedPublic('public-service-detail', async (serviceSlug: string, locale: Locale) => prisma.service.findFirst({
       where: { slug: serviceSlug, status: 'PUBLISHED', deletedAt: null },
-      include: { translations: true },
+      include: { translations: true, coverMedia: { include: { translations: true } } },
     }))(slug, locale)
     const translation = row ? localeTranslation(row.translations, locale) : undefined
     if (row && translation) {
@@ -281,6 +282,7 @@ export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetai
         features: Array.isArray(translation.features) ? translation.features.map((feature) => ({ text: String(feature) })) : [],
         icon: row.icon,
         showOnHome: row.showOnHome,
+        image: publicMedia(row.coverMedia, locale),
       })
       if (item) {
         detail = await loadServiceDetailPage(`service-${row.id}` as `service-${string}`, item, locale)

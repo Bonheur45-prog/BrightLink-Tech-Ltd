@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ArrowRightIcon, CheckIcon, IconByKey } from '@/components/ui/Icons'
@@ -27,7 +28,12 @@ export function WhatWeDo({ data, services }: { data: WhatWeDoData; services: Ser
             return (
               <Reveal as="li" key={service.id} delay={(i % 4) * 110}>
                 <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl bg-white p-7 shadow-lg shadow-brand-navy/5 ring-1 ring-brand-navy/5 transition duration-300 hover:-translate-y-2 hover:shadow-2xl hover:shadow-brand-navy/15">
-                  <span aria-hidden className={`absolute inset-x-0 top-0 h-1.5 origin-left scale-x-[0.3] transition-transform duration-500 group-hover:scale-x-100 ${a.bar}`} />
+                  <span aria-hidden className={`absolute inset-x-0 top-0 z-10 h-1.5 origin-left scale-x-[0.3] transition-transform duration-500 group-hover:scale-x-100 ${a.bar}`} />
+                  {service.image && (
+                    <div className="relative -mx-7 -mt-7 mb-6 aspect-[16/10] overflow-hidden bg-slate-100">
+                      <Image src={service.image.url} alt={service.image.alt || `${service.title} service cover`} fill sizes="(min-width: 1280px) 25vw, (min-width: 640px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-105" />
+                    </div>
+                  )}
                   <div className="flex items-start justify-between">
                     <span className={`grid size-14 place-items-center rounded-2xl text-white shadow-lg ${a.tile}`}>
                       <IconByKey name={service.icon} width={28} height={28} />
