@@ -51,6 +51,7 @@ type Extra = Omit<ServiceDetail, 'id' | 'title' | 'slug' | 'url' | 'icon' | 'sho
 
 const EXTRA: Record<string, Extra> = {
   'software-development': {
+    image: null,
     banner: {
       heading: 'Custom software built around the way you work',
       intro:
@@ -124,6 +125,7 @@ const EXTRA: Record<string, Extra> = {
   },
 
   'website-design': {
+    image: null,
     banner: {
       heading: 'Professional websites that win trust and get found',
       intro:
@@ -197,6 +199,7 @@ const EXTRA: Record<string, Extra> = {
   },
 
   'digital-marketing': {
+    image: null,
     banner: {
       heading: 'Digital marketing that keeps your brand visible',
       intro:
@@ -273,6 +276,7 @@ const EXTRA: Record<string, Extra> = {
   },
 
   'it-support-consultancy': {
+    image: null,
     banner: {
       heading: 'IT support and advice you can count on',
       intro:
