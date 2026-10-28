@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState, useTransition } from 'react';
+import { createPortal } from 'react-dom';
 import { browseMedia, type PickerItem } from '@/app/admin/(cms)/media/actions';
 import { Button } from '@/components/admin/Button/Button';
 import { MediaThumb } from '@/components/admin/MediaThumb/MediaThumb';
@@ -14,18 +15,21 @@ type PickerProps = { open: boolean; onClose: () => void; onPick: (m: PickedMedia
 /** Modal that lists the media library (search, pages) and lets you upload a new file and pick it. */
 export function MediaPicker({ open, onClose, onPick, kind = 'IMAGE', title = 'Choose a photo' }: PickerProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const [mounted, setMounted] = useState(false);
   const [q, setQ] = useState('');
   const [page, setPage] = useState(1);
   const [data, setData] = useState<{ items: PickerItem[]; total: number; pageSize: number } | null>(null);
   const [error, setError] = useState('');
   const [pending, start] = useTransition();
 
+  useEffect(() => setMounted(true), []);
+
   useEffect(() => {
     const d = ref.current;
-    if (!d) return;
+    if (!mounted || !d) return;
     if (open && !d.open) d.showModal();
     if (!open && d.open) d.close();
-  }, [open]);
+  }, [open, mounted]);
 
   const load = (query: string, p: number) =>
     start(async () => {
@@ -44,7 +48,9 @@ export function MediaPicker({ open, onClose, onPick, kind = 'IMAGE', title = 'Ch
 
   const pages = data ? Math.max(1, Math.ceil(data.total / data.pageSize)) : 1;
 
-  return (
+  if (!mounted) return null;
+
+  return createPortal(
     <dialog ref={ref} className={styles.dialog} onClose={onClose} aria-labelledby="media-picker-title">
       <div className={styles.head}>
         <h2 id="media-picker-title" className={styles.title}>{title}</h2>
@@ -86,7 +92,8 @@ export function MediaPicker({ open, onClose, onPick, kind = 'IMAGE', title = 'Ch
           <Button size="sm" disabled={page >= pages || pending} onClick={() => setPage(page + 1)}>Next →</Button>
         </div>
       )}
-    </dialog>
+    </dialog>,
+    document.body,
   );
 }
 
