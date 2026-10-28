@@ -45,8 +45,7 @@ export function ServiceOverview({ service }: { service: ServiceDetail }) {
 
         {/* picture space */}
         <Reveal from="right" className="relative mx-auto w-full max-w-md lg:col-span-5 lg:max-w-none">
-          <div aria-hidden className="absolute -right-4 -top-4 h-full w-4/5 rounded-[2rem] bg-brand-link opacity-90 sm:-right-5 sm:-top-5" />
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-2xl shadow-brand-navy/20">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-xl shadow-slate-300/50">
             {image ? (
               <Image
                 src={image.url}
