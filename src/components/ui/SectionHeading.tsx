@@ -54,7 +54,7 @@ export function SectionHeading({ eyebrow, title, highlight, intro, id, align = '
       </Reveal>
       {intro && (
         <Reveal delay={160}>
-          <p className={`mt-4 text-base leading-relaxed sm:text-lg ${tone === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>{intro}</p>
+          <p className={`mt-5 text-lg leading-relaxed lg:mt-4 ${tone === 'dark' ? 'text-white/80' : 'text-slate-600'}`}>{intro}</p>
         </Reveal>
       )}
       {children}

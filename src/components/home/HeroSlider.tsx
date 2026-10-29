@@ -288,7 +288,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
 
       {/* ---------------- text (all slides stacked in one grid cell so the tallest sets the height) */}
       <div
-        className={`container-x relative z-10 grid pt-24 sm:pt-32 lg:pt-[clamp(8.75rem,19vh,11rem)] ${hasHighlights ? 'pb-40 lg:pb-[clamp(10rem,23vh,13rem)]' : 'pb-28 lg:pb-[clamp(6.5rem,15vh,9rem)]'}`}
+        className={`container-x relative z-10 grid pt-36 lg:pt-[clamp(8.75rem,19vh,11rem)] ${hasHighlights ? 'pb-48 lg:pb-[clamp(10rem,23vh,13rem)]' : 'pb-36 lg:pb-[clamp(6.5rem,15vh,9rem)]'}`}
         aria-live={running ? 'off' : 'polite'}
       >
         {slides.map((slide, i) => {
@@ -324,7 +324,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
               </Heading>
               {slide.subheading && (
                 <p
-                  className={`${animate} mt-5 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg`}
+                  className={`${animate} mt-6 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg lg:mt-5`}
                   style={delay(0.35)}
                 >
                   {slide.subheading}
@@ -332,7 +332,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
               )}
               {(slide.primaryCta || slide.secondaryCta) && (
                 <div
-                  className={`${animate} mt-8 flex flex-wrap gap-3 ${centered ? 'justify-center' : ''}`}
+                  className={`${animate} mt-9 flex flex-wrap gap-3 lg:mt-8 ${centered ? 'justify-center' : ''}`}
                   style={delay(0.5)}
                 >
                   {slide.primaryCta && (

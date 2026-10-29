@@ -62,7 +62,7 @@ export function FeaturesSection({ section, ctx, newsletter }: SectionProps & { n
   if (section.variant === 'list') {
     const side = newsletter ?? null
     return (
-      <SectionShell section={section} ctx={ctx} labelledBy={id} className="py-20 lg:py-24">
+      <SectionShell section={section} ctx={ctx} labelledBy={id} className="py-24">
         {(tone) => (
           <div className={`container-x grid items-center gap-12 lg:gap-16 ${side || image ? 'lg:grid-cols-12' : ''}`}>
             <div className={side || image ? 'lg:col-span-7' : ''}>

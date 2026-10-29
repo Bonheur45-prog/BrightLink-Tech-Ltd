@@ -127,7 +127,7 @@ export function TextMediaSection({ section, ctx }: SectionProps) {
           <div className="container-x relative grid items-center gap-14 lg:grid-cols-2 lg:gap-20">
             <div>{copy(tone)}</div>
             <Reveal from="right" delay={200} className="relative mx-auto w-full max-w-xl lg:max-w-none">
-              <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-xl shadow-slate-300/50 sm:aspect-[5/4] lg:aspect-[1/1]">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-xl shadow-slate-300/50 sm:aspect-[5/5] lg:aspect-[1/1]">
                 <Photo image={image} sizes="(min-width: 1024px) 560px, 100vw" />
                 {badge && <Badge text={badge} className="bottom-5 left-5" />}
               </div>
