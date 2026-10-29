@@ -10,6 +10,8 @@ export type MediaRef = {
   width?: number
   height?: number
   mimeType?: string
+  /** videos only: still picture shown before the video plays */
+  poster?: string
 }
 
 export type Cta = { label: string; url: string; newTab: boolean }
@@ -42,6 +44,8 @@ export type SiteSettingsData = {
   smoothScroll: boolean
   parallax: boolean
   enabledLocales: ('en' | 'fr' | 'rw')[]
+  /** The language these settings were loaded in (the language of the page being shown). */
+  locale: 'en' | 'fr' | 'rw'
 }
 
 export type NavChild = { label: string; url: string; description: string }

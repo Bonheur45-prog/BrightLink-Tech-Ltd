@@ -4,46 +4,33 @@ import { getRequestLocale } from './request-locale'
 
 import { loadFooter, loadHeader, loadSiteSettings } from './site'
 
-import { normalizeClient, normalizeProject, normalizeProjectDetail, normalizeService, normalizeServiceDetail, normalizeTeamMember } from './normalize'
+import { normalizeClient, normalizeProject, normalizeProjectDetail, normalizeService, normalizeTeamMember } from './normalize'
 import { prisma } from '@/lib/db'
-import { mediaUrl } from '@/lib/media'
+import { photoUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
-import { loadAboutPage, loadBlogPage, loadContactPage, loadHomePage, loadProjectsPage, loadServiceDetailPage, loadServicesPage } from './public-pages'
+import { loadBlogPage } from './public-pages'
 import { loadPublicCategories, loadPublicPostBySlug, loadPublicPosts } from './public-blog'
 import { DEFAULT_BLOG_PAGE, STARTER_CATEGORIES, STARTER_POSTS } from './blogDefaults'
-import { DEFAULT_CONTACT_PAGE } from './contactDefaults'
-import { DEFAULT_PROJECTS_PAGE } from './projectDefaults'
-import { DEFAULT_SERVICES_PAGE } from './serviceDefaults'
-import {
-  DEFAULT_ABOUT,
-  DEFAULT_HOME,
-  STARTER_CLIENTS,
-  STARTER_PROJECTS,
-  STARTER_PROJECTS_RAW as STARTER_RAW_PROJECTS,
-  STARTER_SERVICES,
-} from './defaults'
+import { STARTER_CLIENTS, STARTER_PROJECTS, STARTER_PROJECTS_RAW as STARTER_RAW_PROJECTS, STARTER_SERVICES } from './defaults'
 import type {
-  AboutData,
   BlogCategory,
   BlogPageData,
-  ContactPageData,
   BlogPost,
   BlogPostFull,
   ClientItem,
   FooterData,
   HeaderData,
-  HomePageData,
   ProjectItem,
   ProjectDetail,
-  ProjectsPageData,
-  ServiceDetail,
   ServiceItem,
-  ServicesPageData,
   SiteSettingsData,
   TeamMember,
 } from './types'
 
 export type * from './types'
+
+/** A project links to its service only while that service is published (not a draft, not in the trash). */
+const serviceIsLive = (service: { status: string; deletedAt: Date | null }) => service.status === 'PUBLISHED' && !service.deletedAt
 
 const localeTranslation = <T extends { locale: string }>(rows: T[], locale: Locale): T | undefined => rows.find((row) => row.locale === locale) ?? rows.find((row) => row.locale === 'en')
 
@@ -57,18 +44,12 @@ const localeTranslation = <T extends { locale: string }>(rows: T[], locale: Loca
 // Phase 2: settings, header and footer now come from the database (see ./site.ts).
 export const getSiteSettings = cache(async (): Promise<SiteSettingsData> => loadSiteSettings(await getRequestLocale()))
 export const getHeader = cache(async (): Promise<HeaderData> => loadHeader(await getRequestLocale()))
-export const getHomePage = cache(async (): Promise<HomePageData> => {
-  try {
-    return (await loadHomePage(await getRequestLocale())) ?? DEFAULT_HOME
-  } catch (error) {
-    console.error('[content] home page could not be loaded; using starter content', error)
-    return DEFAULT_HOME
-  }
-})
 export const getFooter = cache(async (): Promise<FooterData> => loadFooter(await getRequestLocale()))
 
 type PublicMediaRow = {
   objectKey: string
+  kind?: string
+  variants?: unknown
   width: number
   height: number
   mimeType: string
@@ -79,8 +60,8 @@ function publicMedia(row: PublicMediaRow | null | undefined, locale: Locale = 'e
   if (!row) return null
   try {
     return {
-      url: mediaUrl(row.objectKey),
-      alt: row.translations.find((t) => t.locale === locale)?.alt ?? row.translations.find((t) => t.locale === 'en')?.alt ?? '',
+      url: photoUrl(row),
+      alt: row.translations.find((t) => t.locale === locale)?.alt || row.translations.find((t) => t.locale === 'en')?.alt || '',
       width: row.width,
       height: row.height,
       mimeType: row.mimeType,
@@ -147,7 +128,7 @@ const projectsFromCms = cachedPublic('public-projects', async (locale: Locale): 
       featuredImage: publicMedia(row.coverMedia, locale),
       externalUrl: row.externalUrl,
       showOnHome: row.showOnHome,
-      service: row.service && serviceTranslation ? { slug: row.service.slug } : null,
+      service: row.service && serviceTranslation && serviceIsLive(row.service) ? { slug: row.service.slug } : null,
       status: row.state === 'IN_PROGRESS' ? 'in-progress' : 'completed',
       progress: row.progress,
     })
@@ -193,14 +174,6 @@ export const getClients = cache(async (requestedLocale?: Locale): Promise<Client
     return STARTER_CLIENTS
   }
 })
-export const getAboutPage = cache(async (): Promise<AboutData> => {
-  try {
-    return (await loadAboutPage(await getRequestLocale())) ?? DEFAULT_ABOUT
-  } catch (error) {
-    console.error('[content] about page could not be loaded; using starter content', error)
-    return DEFAULT_ABOUT
-  }
-})
 const teamFromCms = cachedPublic('public-team', async (locale: Locale): Promise<TeamMember[]> => {
   const rows = await prisma.teamMember.findMany({
     where: { status: 'PUBLISHED', deletedAt: null },
@@ -231,22 +204,6 @@ export const getTeam = cache(async (): Promise<TeamMember[]> => {
     return []
   }
 })
-export const getServicesPage = cache(async (): Promise<ServicesPageData> => {
-  try {
-    return (await loadServicesPage(await getRequestLocale())) ?? DEFAULT_SERVICES_PAGE
-  } catch (error) {
-    console.error('[content] services page could not be loaded; using starter content', error)
-    return DEFAULT_SERVICES_PAGE
-  }
-})
-export const getProjectsPage = cache(async (): Promise<ProjectsPageData> => {
-  try {
-    return (await loadProjectsPage(await getRequestLocale())) ?? DEFAULT_PROJECTS_PAGE
-  } catch (error) {
-    console.error('[content] projects page could not be loaded; using starter content', error)
-    return DEFAULT_PROJECTS_PAGE
-  }
-})
 export const getBlogPage = cache(async (): Promise<BlogPageData> => {
   try {
     return (await loadBlogPage(await getRequestLocale())) ?? DEFAULT_BLOG_PAGE
@@ -255,67 +212,26 @@ export const getBlogPage = cache(async (): Promise<BlogPageData> => {
     return DEFAULT_BLOG_PAGE
   }
 })
-export const getContactPage = cache(async (): Promise<ContactPageData> => {
-  try {
-    return (await loadContactPage(await getRequestLocale())) ?? DEFAULT_CONTACT_PAGE
-  } catch (error) {
-    console.error('[content] contact page could not be loaded; using starter content', error)
-    return DEFAULT_CONTACT_PAGE
-  }
-})
 
-export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetail | null> => {
-  const locale = await getRequestLocale()
-  let detail: ServiceDetail | null = null
-  try {
-    const row = await cachedPublic('public-service-detail', async (serviceSlug: string, _locale: Locale) => prisma.service.findFirst({
-      where: { slug: serviceSlug, status: 'PUBLISHED', deletedAt: null },
-      include: { translations: true, coverMedia: { include: { translations: true } } },
-    }))(slug, locale)
-    const translation = row ? localeTranslation(row.translations, locale) : undefined
-    if (row && translation) {
-      const item = normalizeService({
-        id: row.id,
-        slug: row.slug,
-        title: translation.title,
-        shortDescription: translation.shortDescription,
-        features: Array.isArray(translation.features) ? translation.features.map((feature) => ({ text: String(feature) })) : [],
-        icon: row.icon,
-        showOnHome: row.showOnHome,
-        image: publicMedia(row.coverMedia, locale),
-      })
-      if (item) {
-        detail = await loadServiceDetailPage(`service-${row.id}` as `service-${string}`, item, locale)
-          ?? normalizeServiceDetail({ ...item, features: item.features.map((text) => ({ text })) })
-      }
-    }
-  } catch (error) {
-    console.error('[content] service could not be loaded; using starter content', error)
-  }
-  if (!detail) {
-    const starter = STARTER_SERVICES.find((s) => s.slug === slug)
-    if (!starter) return null
-    detail = normalizeServiceDetail({ ...starter, features: starter.features.map((text) => ({ text })) })
-  }
-  if (!detail) return null
-  if (detail.clientsServed.length === 0 && detail.clientsServedFallback.length) {
-    const clients = await getClients(locale)
-    detail.clientsServed = detail.clientsServedFallback.map((f) => {
-      const match = clients.find((c) => c.name.toLowerCase() === f.name.toLowerCase())
-      return { name: f.name, note: f.note, logo: match?.logo ?? null, website: match?.website ?? '' }
-    })
-  }
-  return detail
-})
 
-/** Projects that belong to one service. */
-export const getProjectsForService = cache(async (slug: string): Promise<ProjectItem[]> => {
-  const all = await getProjects(100)
-  return all.filter((p) => p.serviceSlug === slug)
-})
+
+function starterProjectDetail(slug: string): ProjectDetail | null {
+  const starter = STARTER_RAW_PROJECTS.find((p) => p.slug === slug)
+  if (!starter) return null
+  return normalizeProjectDetail({
+    ...starter,
+    featuredImage: null,
+    service: STARTER_SERVICES.find((s) => s.slug === starter.service) ?? null,
+  })
+}
 
 export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetail | null> => {
   const locale = await getRequestLocale()
+  // Only projects the site lists have a page: published ones, or the starter projects while the database
+  // has none or cannot be reached. A trashed or draft project is not found (no starter page in its place).
+  const listed = (await getProjects(1000, locale)).find((p) => p.slug === slug)
+  if (!listed) return null
+  if (listed.id.startsWith('starter-')) return starterProjectDetail(slug)
   try {
     const row = await cachedPublic('public-project-detail', async (projectSlug: string, _locale: Locale) => prisma.project.findFirst({
       where: { slug: projectSlug, status: 'PUBLISHED', deletedAt: null },
@@ -341,13 +257,13 @@ export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetai
         title: translation.title,
         category: translation.category,
         shortDescription: translation.shortDescription,
-        description: Array.isArray(translation.paragraphs) ? translation.paragraphs.map(String).join('\\n\\n') : '',
+        description: Array.isArray(translation.paragraphs) ? translation.paragraphs.map(String).join('\n\n') : '',
         highlights: Array.isArray(translation.highlights) ? translation.highlights.map((text) => ({ text: String(text) })) : [],
         featuredImage: publicMedia(row.coverMedia, locale),
-        gallery: row.gallery.map((item) => ({ image: publicMedia(item.media, locale) })),
+        gallery: row.gallery.filter((item) => !item.media.deletedAt).map((item) => ({ image: publicMedia(item.media, locale) })),
         externalUrl: row.externalUrl,
         showOnHome: row.showOnHome,
-        service: row.service && serviceTranslation ? { slug: row.service.slug, title: serviceTranslation.title } : null,
+        service: row.service && serviceTranslation && serviceIsLive(row.service) ? { slug: row.service.slug, title: serviceTranslation.title } : null,
         status: row.state === 'IN_PROGRESS' ? 'in-progress' : 'completed',
         progress: row.progress,
         seo: { metaTitle: translation.metaTitle, metaDescription: translation.metaDescription, ogImage: publicMedia(ogMedia, locale) },
@@ -357,13 +273,7 @@ export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetai
   } catch (error) {
     console.error('[content] project could not be loaded; using starter content', error)
   }
-  const starter = STARTER_RAW_PROJECTS.find((p) => p.slug === slug)
-  if (!starter) return null
-  return normalizeProjectDetail({
-    ...starter,
-    featuredImage: null,
-    service: STARTER_SERVICES.find((s) => s.slug === starter.service) ?? null,
-  })
+  return starterProjectDetail(slug)
 })
 
 /* ------------------------------------------------------------------ blog */

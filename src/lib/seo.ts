@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { defaultLocale, localizeHref, ogLocale, type Locale } from '@/i18n/config'
 import type { MediaRef, SiteSettingsData } from './content/types'
 
 /**
@@ -10,9 +11,27 @@ export function getServerUrl(): string {
   return url.replace(/\/+$/, '')
 }
 
-export function absoluteUrl(path = '/'): string {
+/** Full address of a page or file. With a language, a page of this site gets its prefix ("/fr/about-us"). */
+export function absoluteUrl(path = '/', locale?: Locale): string {
+  // photo addresses carry their stored sizes after "#w=" (src/lib/media.ts); not part of the address itself
+  path = path.replace(/#w=[\d.]*~\d+$/, '')
   if (/^https?:\/\//i.test(path)) return path
-  return `${getServerUrl()}${path.startsWith('/') ? path : `/${path}`}`
+  const p = path.startsWith('/') ? path : `/${path}`
+  return `${getServerUrl()}${locale ? localizeHref(p, locale) : p}`
+}
+
+/**
+ * Canonical address of a page in the visitor's language, plus one hreflang link per language switched
+ * on in Site settings (and x-default = English), so search engines index each language separately.
+ */
+export function languageAlternates(path: string, settings: Pick<SiteSettingsData, 'locale' | 'enabledLocales'>): NonNullable<Metadata['alternates']> {
+  const enabled = settings.enabledLocales
+  return {
+    canonical: absoluteUrl(path, settings.locale),
+    ...(enabled.length > 1
+      ? { languages: { ...Object.fromEntries(enabled.map((l) => [l, absoluteUrl(path, l)])), 'x-default': absoluteUrl(path, defaultLocale) } }
+      : {}),
+  }
 }
 
 type BuildMetadataArgs = {
@@ -49,15 +68,15 @@ export function buildMetadata({
     // `absolute` stops the layout template being applied twice.
     title: { absolute: fullTitle },
     description: desc,
-    alternates: { canonical: absoluteUrl(path) },
+    alternates: languageAlternates(path, settings),
     robots: noIndex ? { index: false, follow: false } : undefined,
     openGraph: {
       type,
-      url: absoluteUrl(path),
+      url: absoluteUrl(path, settings.locale),
       siteName: settings.companyName,
       title: fullTitle,
       description: desc,
-      locale: 'en_US',
+      locale: ogLocale[settings.locale],
       images,
     },
     twitter: {
@@ -112,16 +131,17 @@ export function websiteJsonLd(settings: SiteSettingsData) {
     name: settings.companyName,
     description: settings.seo.defaultDescription,
     publisher: { '@id': `${getServerUrl()}/#organization` },
-    inLanguage: 'en',
+    inLanguage: settings.locale,
   }
 }
 
-export function webPageJsonLd(opts: { name: string; description: string; path: string }) {
+export function webPageJsonLd(opts: { name: string; description: string; path: string; locale?: Locale }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
-    '@id': `${absoluteUrl(opts.path)}#webpage`,
-    url: absoluteUrl(opts.path),
+    '@id': `${absoluteUrl(opts.path, opts.locale)}#webpage`,
+    url: absoluteUrl(opts.path, opts.locale),
+    ...(opts.locale ? { inLanguage: opts.locale } : {}),
     name: opts.name,
     description: opts.description,
     isPartOf: { '@id': `${getServerUrl()}/#website` },
@@ -129,7 +149,7 @@ export function webPageJsonLd(opts: { name: string; description: string; path: s
   }
 }
 
-export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
+export function breadcrumbJsonLd(items: { name: string; path: string }[], locale?: Locale) {
   return {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -137,20 +157,20 @@ export function breadcrumbJsonLd(items: { name: string; path: string }[]) {
       '@type': 'ListItem',
       position: i + 1,
       name: item.name,
-      item: absoluteUrl(item.path),
+      item: absoluteUrl(item.path, locale),
     })),
   }
 }
 
 /** Schema.org Service for one service page, with the company as provider. */
-export function serviceJsonLd(opts: { name: string; description: string; path: string; image?: string | null }) {
+export function serviceJsonLd(opts: { name: string; description: string; path: string; image?: string | null; locale?: Locale }) {
   return {
     '@context': 'https://schema.org',
     '@type': 'Service',
-    '@id': `${absoluteUrl(opts.path)}#service`,
+    '@id': `${absoluteUrl(opts.path, opts.locale)}#service`,
     name: opts.name,
     description: opts.description,
-    url: absoluteUrl(opts.path),
+    url: absoluteUrl(opts.path, opts.locale),
     serviceType: opts.name,
     ...(opts.image ? { image: absoluteUrl(opts.image) } : {}),
     provider: { '@id': `${getServerUrl()}/#organization` },
@@ -183,20 +203,21 @@ export function blogPostingJsonLd(opts: {
   settings: SiteSettingsData
 }) {
   const org = { '@id': `${getServerUrl()}/#organization` }
+  const url = absoluteUrl(opts.path, opts.settings.locale)
   return {
     '@context': 'https://schema.org',
     '@type': 'BlogPosting',
-    '@id': `${absoluteUrl(opts.path)}#article`,
-    mainEntityOfPage: { '@type': 'WebPage', '@id': absoluteUrl(opts.path) },
+    '@id': `${url}#article`,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': url },
     headline: opts.title.slice(0, 110),
     description: opts.description,
-    url: absoluteUrl(opts.path),
+    url,
     datePublished: opts.published,
     dateModified: opts.modified || opts.published,
     ...(opts.image ? { image: [absoluteUrl(opts.image)] } : {}),
     author: opts.authorName === 'BrightLink Team' ? org : { '@type': 'Person', name: opts.authorName },
     publisher: org,
-    inLanguage: 'en',
+    inLanguage: opts.settings.locale,
     ...(opts.keywords?.length ? { keywords: opts.keywords.join(', ') } : {}),
     ...(opts.section ? { articleSection: opts.section } : {}),
   }

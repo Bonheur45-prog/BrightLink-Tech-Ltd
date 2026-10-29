@@ -2,7 +2,7 @@ import 'server-only'
 
 import type { Locale } from '@/i18n/config'
 import { prisma } from '@/lib/db'
-import { mediaUrl } from '@/lib/media'
+import { photoUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
 import { safeHref } from '@/lib/blog/render'
 import { normalizeBlogCategory, normalizeBlogPost } from './normalize'
@@ -27,8 +27,8 @@ function mediaRef(row: MediaRow | null | undefined, locale: Locale) {
   if (!row) return null
   try {
     return {
-      url: mediaUrl(row.objectKey),
-      alt: translation(row.translations, locale)?.alt ?? '',
+      url: photoUrl(row),
+      alt: translation(row.translations, locale)?.alt || row.translations.find((t) => t.locale === 'en')?.alt || '',
       width: row.width,
       height: row.height,
       mimeType: row.mimeType,
@@ -99,7 +99,7 @@ function tiptapToLexical(doc: unknown, assets: Record<string, MediaRow>): unknow
         if (!media) return []
         const alt = typeof node.attrs?.alt === 'string' && node.attrs.alt.trim() ? node.attrs.alt : media.translations.find((t) => t.locale === 'en')?.alt ?? ''
         const caption = typeof node.attrs?.title === 'string' ? node.attrs.title : ''
-        return [{ type: 'upload', value: { url: mediaUrl(media.objectKey), alt, caption, mimeType: media.mimeType } }]
+        return [{ type: 'upload', value: { url: photoUrl(media), alt, caption, mimeType: media.mimeType } }]
       }
       case 'table':
       case 'tableRow': {

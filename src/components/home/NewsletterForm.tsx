@@ -35,6 +35,7 @@ export function NewsletterForm({
           id="newsletter-email"
           name="email"
           type="email"
+          defaultValue={state.values?.email}
           required
           autoComplete="email"
           placeholder="Your email address"

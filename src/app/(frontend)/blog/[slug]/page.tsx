@@ -42,7 +42,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   })
   return {
     ...meta,
-    alternates: { canonical: post.seo.canonicalUrl || absoluteUrl(post.url) },
+    // A custom canonical (the article first appeared elsewhere) replaces this site's language versions.
+    alternates: post.seo.canonicalUrl ? { canonical: post.seo.canonicalUrl } : meta.alternates,
     keywords: [post.seo.focusKeyword, ...post.tags].filter(Boolean),
     authors: [{ name: post.author.name }],
     openGraph: {
@@ -68,7 +69,7 @@ export default async function BlogPostPage({ params }: Props) {
     ...others.filter((p) => !p.category?.slug || p.category.slug !== post.category?.slug),
   ].slice(0, 3)
   const color = post.category?.color ?? 'blue'
-  const url = absoluteUrl(post.url)
+  const url = absoluteUrl(post.url, settings.locale)
 
   const schema: Record<string, unknown>[] = [
     blogPostingJsonLd({
@@ -87,7 +88,7 @@ export default async function BlogPostPage({ params }: Props) {
       { name: 'Blog', path: '/blog' },
       ...(post.category ? [{ name: post.category.name, path: `/blog/category/${post.category.slug}` }] : []),
       { name: post.title, path: post.url },
-    ]),
+    ], settings.locale),
   ]
 
   return (

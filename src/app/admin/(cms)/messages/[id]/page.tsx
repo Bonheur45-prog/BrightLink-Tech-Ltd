@@ -15,6 +15,13 @@ import { deleteLead, setLeadStatus } from '../actions';
 export const metadata: Metadata = { title: 'Message' };
 const when = new Intl.DateTimeFormat('en-GB', { dateStyle: 'full', timeStyle: 'short', timeZone: 'Africa/Kigali' });
 
+/** Whether the notification email went out (messages from before email sending existed have no record). */
+function emailStatus(m: { notifiedAt: Date | null; notifyError: string | null; createdAt: Date }): string {
+  if (m.notifiedAt) return `Yes, ${when.format(m.notifiedAt)}`;
+  if (m.notifyError) return 'No (see the note above)';
+  return Date.now() - m.createdAt.getTime() < 5 * 60 * 1000 ? 'Sending…' : 'Not recorded';
+}
+
 export default async function MessagePage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Search }) {
   await requireUser();
   const { id } = await params;
@@ -36,10 +43,11 @@ export default async function MessagePage({ params, searchParams }: { params: Pr
         }
       />
       {notice && <Notice tone="success">{notice}</Notice>}
-      {m.notifyError && <Notice tone="warning" title="The notification email failed">{m.notifyError}</Notice>}
+      {m.notifyError && <Notice tone="warning" title="This message was not emailed to you">{m.notifyError}</Notice>}
       <Fieldset legend="Details">
         <p><StatusBadge status={m.status} /></p>
         {row('Received', when.format(m.createdAt))}
+        {row('Emailed to the team', emailStatus(m))}
         {row('Email', m.email)}
         {row('Phone', m.phone)}
         {row('Service', m.service)}

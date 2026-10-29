@@ -1,9 +1,5 @@
 import type { NextConfig } from 'next';
 
-// Public hostname of the Cloudflare R2 bucket (custom domain), e.g. media.brightlinkltd.com.
-// "https://" or a trailing slash typed by mistake is removed (same rule as normalizeHost in src/lib/media.ts).
-const r2Host = process.env.R2_PUBLIC_HOSTNAME?.trim().replace(/^https?:\/\//i, '').replace(/\/+$/, '');
-
 const config: NextConfig = {
   // Production build = a small self-contained folder (.next/standalone) that runs with `node server.js`.
   // Built on GitHub Actions and copied to the VPS (see docs/DEPLOY.md).
@@ -15,10 +11,13 @@ const config: NextConfig = {
   // sharp and the Prisma client are loaded from node_modules at runtime instead of being bundled.
   serverExternalPackages: ['sharp'],
   images: {
-    localPatterns: [{ pathname: '/images/**' }],
-    remotePatterns: r2Host ? [{ protocol: /^(localhost|127\.0\.0\.1)(:|$)/.test(r2Host) ? 'http' : 'https', hostname: r2Host.replace(/:\d+$/, '') }] : [],
-    // WebP only: AVIF encoding is very CPU-heavy on a shared VPS. Phase 6 serves pre-made R2 sizes directly.
-    formats: ['image/webp'],
+    // Photos are never resized on this server: the loader picks the ready-made WebP copy stored in R2
+    // (480 / 960 / 1600 px or the original) for each screen size. See src/lib/image-loader.ts.
+    loader: 'custom',
+    loaderFile: './src/lib/image-loader.ts',
+    // Widths the browser chooses between (close to the stored copies, so little is wasted).
+    deviceSizes: [480, 640, 960, 1280, 1600, 1920, 2400],
+    imageSizes: [64, 128, 256, 384],
   },
   async headers() {
     return [

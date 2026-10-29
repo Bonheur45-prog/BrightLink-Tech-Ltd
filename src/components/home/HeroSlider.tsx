@@ -58,7 +58,7 @@ function BrandBackground() {
       />
       {/* the BrightLink link-mark, very faint, as a brand watermark */}
       <Image
-        src="/images/brand/brightlink-mark.png"
+        src="/images/brand/brightlink-mark.webp#w=~212"
         alt=""
         width={212}
         height={280}
@@ -113,7 +113,7 @@ function HeroVideo({
       playsInline
       autoPlay={eager}
       preload={eager ? 'auto' : 'metadata'}
-      poster={slide.poster?.url}
+      poster={slide.poster?.url.replace(/#w=[\d.]*~\d+$/, '')}
       disablePictureInPicture
       aria-hidden
       tabIndex={-1}
@@ -187,9 +187,9 @@ function SlideMedia({
 
 /* ------------------------------------------------------------------ slider */
 
-type Props = { hero: HeroData; hasHighlights: boolean }
+type Props = { hero: HeroData; hasHighlights: boolean; /** h1 when the hero opens the page (default) */ firstHeading?: 'h1' | 'h2' }
 
-export function HeroSlider({ hero, hasHighlights }: Props) {
+export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) {
   const { slides } = hero
   const count = slides.length
   const multiple = count > 1
@@ -290,7 +290,7 @@ export function HeroSlider({ hero, hasHighlights }: Props) {
       >
         {slides.map((slide, i) => {
           const isActive = i === safeActive
-          const Heading = i === 0 ? 'h1' : 'h2' // one H1 per page: the first slide
+          const Heading = i === 0 ? firstHeading : 'h2' // one H1 per page: the first slide
           const centered = slide.textAlign === 'center'
           const animate = isActive ? 'hero-reveal' : ''
           return (
