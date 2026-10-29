@@ -3,15 +3,27 @@
 The build happens on GitHub (not on the VPS). Every push to `main` builds, runs `prisma migrate deploy`, uploads a
 release and reloads PM2. Oak Elite Home uses port 3020; BrightLink uses **3021** (`deploy/ecosystem.config.cjs`).
 
-## One-time VPS setup
-1. Create the database and a user for it (PostgreSQL), e.g. `brightlink`.
-2. `mkdir -p /var/www/brightlink` and create `/var/www/brightlink/.env` from `.env.example` (production values).
-3. Add the block from `deploy/Caddyfile.brightlink` to `/etc/caddy/Caddyfile`, then `systemctl reload caddy`.
-   **The domain in it is a placeholder: change it to the real one.**
-4. Create the first CMS user. The release folder has no scripts, so run it from a checkout of the repo with
-   `DATABASE_URL` pointing at the production database: either on the VPS (`git clone`, `npm ci`, `npm run user:create`),
-   or from your computer through an SSH tunnel (`ssh -N -L 15432:127.0.0.1:5432 user@vps`, then
-   `DATABASE_URL=postgresql://…@127.0.0.1:15432/brightlink npm run user:create`).
+## One-time VPS setup (done in October 2026 for brightlinkltd.com)
+1. PostgreSQL 16 on the VPS, small settings in `/etc/postgresql/16/main/conf.d/brightlink.conf`
+   (`listen_addresses = 'localhost'`, `max_connections = 20`, `shared_buffers = 128MB`, `effective_cache_size = 512MB`,
+   `work_mem = 4MB`, `maintenance_work_mem = 64MB`). Database and user `brightlink`; the password is kept in
+   `~/.pg-brightlink-pass` on the VPS (readable only by the `brightlink` user).
+2. `/var/www/brightlink` owned by the deploy user, with `/var/www/brightlink/.env` (mode 600) holding the production values.
+3. DNS on Cloudflare (Free): `A @` → VPS and `CNAME www` → `@`, both **DNS only** (grey cloud); `media` → the R2 bucket;
+   Zoho mail records and Brevo records unchanged.
+4. Add the blocks from `deploy/Caddyfile.brightlink` to `/etc/caddy/Caddyfile`, then
+   `sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && sudo systemctl reload caddy`.
+   A reload does not interrupt the other sites; a file with a mistake is refused and the old settings stay.
+5. First deploy: merge to `main` (or Actions → Deploy to VPS → Run workflow).
+6. Starter content, once, on the new database: Actions → **Deploy to VPS** → **Run workflow** → tick
+   **"Also add the starter content"**. Safe to repeat: it only adds what is missing.
+7. First CMS user. The release folder has no scripts, so run it from your own checkout of the repo through an SSH tunnel:
+   `ssh -N -L 15432:127.0.0.1:5432 brightlink@<VPS>` (leave it open), then in a second terminal
+   `DATABASE_URL="postgresql://brightlink:<password>@127.0.0.1:15432/brightlink?schema=public" npm run user:create`.
+
+Each deploy waits up to 30 seconds for the new release to answer on port 3021; if it does not, the deploy fails and
+prints the site's log. The last 3 releases are kept in `/var/www/brightlink/releases` for a quick rollback
+(`ln -sfn releases/<older> current && pm2 reload brightlink`).
 
 ## GitHub secrets (Settings → Secrets and variables → Actions)
 `DATABASE_URL`, `R2_PUBLIC_HOSTNAME`, `SITE_URL`, `VPS_HOST`, `VPS_USER`, `VPS_SSH_KEY`.

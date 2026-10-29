@@ -13,6 +13,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      seed:
+        description: 'Also add the starter content (site settings, services, projects, blog). Only needed once, on a new database.'
+        type: boolean
+        default: false
 
 concurrency:
   group: deploy
@@ -97,6 +102,11 @@ jobs:
         if: steps.cfg.outputs.ready == 'true'
         run: npx prisma migrate deploy
 
+      # Run by hand (Actions → Deploy to VPS → Run workflow → tick "seed"). Safe to repeat: it only adds what is missing.
+      - name: Add the starter content
+        if: steps.cfg.outputs.ready == 'true' && github.event_name == 'workflow_dispatch' && inputs.seed
+        run: npm run db:seed
+
       - name: Build
         if: steps.cfg.outputs.ready == 'true'
         run: npm run build
@@ -126,5 +136,13 @@ jobs:
             ln -sfn releases/$RELEASE current
             pm2 startOrReload /var/www/brightlink/current/ecosystem.config.cjs --update-env
             pm2 save
+            # The new release must answer within 30 seconds, otherwise the deploy fails and shows the site's log.
+            ok=0
+            for i in \$(seq 1 30); do
+              if curl -sf -o /dev/null http://127.0.0.1:3021/; then ok=1; break; fi
+              sleep 1
+            done
+            if [ \$ok = 0 ]; then pm2 logs brightlink --lines 40 --nostream; exit 1; fi
+            echo 'Site answers on port 3021.'
             # Keep the last 3 releases (to roll back quickly), delete older ones.
             ls -1dt releases/* | tail -n +4 | xargs -r rm -rf"

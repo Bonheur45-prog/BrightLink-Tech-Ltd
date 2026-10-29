@@ -1,9 +1,21 @@
-# Add this block to /etc/caddy/Caddyfile on the VPS (below the StockPro block).
-# Caddy gets and renews the HTTPS certificate on its own.
-brightlinkltd.com, www.brightlinkltd.com {
+# Add these two blocks to the end of /etc/caddy/Caddyfile on the VPS, then check and reload:
+#   sudo caddy validate --config /etc/caddy/Caddyfile --adapter caddyfile && sudo systemctl reload caddy
+# Caddy gets and renews the HTTPS certificates on its own (DNS records must point at the VPS, Cloudflare proxy off).
+
+brightlinkltd.com {
 	encode zstd gzip
 	request_body {
 		max_size 32MB
 	}
-	reverse_proxy 127.0.0.1:3021
+	reverse_proxy 127.0.0.1:3021 {
+		# The site reads the visitor's address from Cf-Connecting-Ip first (for when Cloudflare's proxy is on).
+		# With the proxy off, anyone could send that header and dodge the contact-form limit, so drop it here.
+		# If you turn Cloudflare's proxy on later, remove this line and add Cloudflare as a trusted proxy instead.
+		header_up -Cf-Connecting-Ip
+	}
+}
+
+# One address for search engines: www sends visitors to the main address.
+www.brightlinkltd.com {
+	redir https://brightlinkltd.com{uri} permanent
 }
