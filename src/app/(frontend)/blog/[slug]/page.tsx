@@ -3,7 +3,7 @@ import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 
 import { ClosingCta } from '@/components/about/ClosingCta'
-import { ArticleBody, TableOfContents } from '@/components/blog/ArticleBody'
+import { ArticleHtml, TableOfContents } from '@/components/blog/ArticleHtml'
 import { PostCard, PostCover, CategoryChip } from '@/components/blog/PostCard'
 import { ReadingProgress } from '@/components/blog/ReadingProgress'
 import { ShareBar } from '@/components/blog/ShareBar'
@@ -158,7 +158,7 @@ export default async function BlogPostPage({ params }: Props) {
       {/* article + sidebar */}
       <div className="container-x grid gap-12 py-14 lg:grid-cols-12 lg:gap-14 lg:py-20">
         <article id="article-body" className="mx-auto w-full max-w-3xl lg:col-span-8 lg:mx-0">
-          <ArticleBody blocks={post.blocks} />
+          <ArticleHtml html={post.html} locale={settings.locale} />
 
           {post.tags.length > 0 && (
             <ul aria-label="Tags" className="mt-12 flex flex-wrap gap-2">
@@ -199,7 +199,7 @@ export default async function BlogPostPage({ params }: Props) {
 
         <aside className="lg:col-span-4">
           <div className="space-y-6 lg:sticky lg:top-28">
-            <TableOfContents blocks={post.blocks} />
+            <TableOfContents toc={post.toc} />
             <div className="rounded-2xl bg-slate-50 p-5 ring-1 ring-slate-200">
               <p className="font-display text-sm font-bold uppercase tracking-wider text-brand-navy">Share</p>
               <div className="mt-3">
