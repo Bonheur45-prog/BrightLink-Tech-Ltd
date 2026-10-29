@@ -3,7 +3,7 @@ import 'server-only'
 import type { Locale } from '@/i18n/config'
 import { getPublished, type DocKey } from '@/lib/cms/drafts'
 import { prisma } from '@/lib/db'
-import { mediaUrl } from '@/lib/media'
+import { photoUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
 import { normalizeBlogPage } from './normalize'
 import type { BlogPageData } from './types'
@@ -13,6 +13,8 @@ type Obj = Record<string, unknown>
 type AssetRow = {
   id: string
   objectKey: string
+  kind: string
+  variants: unknown
   width: number
   height: number
   mimeType: string
@@ -55,7 +57,7 @@ const publicPage = cachedPublic('public-page', async (key: DocKey, locale: Local
   for (const row of rows) {
     try {
       assets[row.id] = {
-        url: mediaUrl(row.objectKey),
+        url: photoUrl(row),
         alt: row.translations.find((t) => t.locale === locale)?.alt || row.translations.find((t) => t.locale === 'en')?.alt || '',
         width: row.width,
         height: row.height,

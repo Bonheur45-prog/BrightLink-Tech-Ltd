@@ -13,6 +13,8 @@ export function getServerUrl(): string {
 
 /** Full address of a page or file. With a language, a page of this site gets its prefix ("/fr/about-us"). */
 export function absoluteUrl(path = '/', locale?: Locale): string {
+  // photo addresses carry their stored sizes after "#w=" (src/lib/media.ts); not part of the address itself
+  path = path.replace(/#w=[\d.]*~\d+$/, '')
   if (/^https?:\/\//i.test(path)) return path
   const p = path.startsWith('/') ? path : `/${path}`
   return `${getServerUrl()}${locale ? localizeHref(p, locale) : p}`

@@ -4,7 +4,7 @@ import { getPublished } from '@/lib/cms/drafts';
 import { defaultFooterDoc, defaultHeaderDoc, resolveFooter, resolveHeader } from '@/lib/cms/globals-model';
 import { prisma } from '@/lib/db';
 import { DEFAULT_BODY_FONT, DEFAULT_HEADING_FONT, isFontKey } from '@/lib/fonts';
-import { mediaUrl } from '@/lib/media';
+import { photoUrl } from '@/lib/media';
 import { cachedPublic } from '@/lib/public-cache';
 import { DEFAULT_SETTINGS } from './defaults';
 import type { FooterData, HeaderData, MediaRef, SiteSettingsData } from './types';
@@ -21,7 +21,7 @@ async function mediaRefs(ids: (string | null)[], locale: Locale): Promise<Map<st
   for (const m of rows) {
     try {
       const alt = m.translations.find((t) => t.locale === locale)?.alt || m.translations.find((t) => t.locale === 'en')?.alt || '';
-      map.set(m.id, { url: mediaUrl(m.objectKey), alt, width: m.width, height: m.height, mimeType: m.mimeType });
+      map.set(m.id, { url: photoUrl(m), alt, width: m.width, height: m.height, mimeType: m.mimeType });
     } catch {
       // R2_PUBLIC_HOSTNAME not set: no URL can be built, so the built-in logo/image is used.
     }

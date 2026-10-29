@@ -181,7 +181,7 @@ export function BrandArt({ className = '' }: { className?: string }) {
       <div className="absolute -left-10 top-6 size-56 rounded-full bg-brand-orange/30 blur-3xl" />
       <div className="absolute -bottom-10 right-0 size-64 rounded-full bg-brand-teal/30 blur-3xl" />
       <Image
-        src="/images/brand/brightlink-mark.png"
+        src="/images/brand/brightlink-mark.webp#w=~212"
         alt=""
         width={212}
         height={280}

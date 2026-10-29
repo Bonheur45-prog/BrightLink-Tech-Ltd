@@ -44,7 +44,7 @@ export function PageBanner({
             <div className="hero-orb absolute -bottom-24 right-10 size-[28rem] rounded-full bg-brand-teal/30 blur-3xl [animation-delay:-6s]" />
             <div className="absolute inset-0 opacity-60 [background-image:linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] [background-size:64px_64px] [mask-image:radial-gradient(ellipse_at_75%_40%,black,transparent_70%)]" />
             <Image
-              src="/images/brand/brightlink-mark.png"
+              src="/images/brand/brightlink-mark.webp#w=~212"
               alt=""
               width={212}
               height={280}

@@ -42,7 +42,7 @@ export function ProjectCard({ project: p, index = 0 }: { project: ProjectItem; i
         ) : (
           <div className={`absolute inset-0 ${BG[index % BG.length]}`}>
             <div className="absolute -right-8 -top-8 size-40 rounded-full bg-brand-yellow/25 blur-2xl" />
-            <Image src="/images/brand/brightlink-mark.png" alt="" width={212} height={280} aria-hidden className="absolute -bottom-6 -right-4 h-[85%] w-auto opacity-[0.14]" />
+            <Image src="/images/brand/brightlink-mark.webp#w=~212" alt="" width={212} height={280} aria-hidden className="absolute -bottom-6 -right-4 h-[85%] w-auto opacity-[0.14]" />
           </div>
         )}
         {p.category && (
