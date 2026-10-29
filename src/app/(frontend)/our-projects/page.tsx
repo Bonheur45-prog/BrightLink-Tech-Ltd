@@ -1,69 +1,48 @@
 import type { Metadata } from 'next'
 
-import { ClosingCta } from '@/components/about/ClosingCta'
-import { ProjectsExplorer } from '@/components/projects/ProjectsExplorer'
+import { PageSections } from '@/components/sections/PageSections'
+import { faqSchema, loadFixed, metadataFor, sectionContext } from '@/components/sections/live-page'
 import { JsonLd } from '@/components/ui/JsonLd'
-import { PageBanner } from '@/components/ui/PageBanner'
-import { getProjects, getProjectsPage, getSiteSettings } from '@/lib/content'
-import { absoluteUrl, breadcrumbJsonLd, buildMetadata, getServerUrl } from '@/lib/seo'
+import { ui } from '@/i18n/ui'
+import { getProjects } from '@/lib/content'
+import { getRequestLocale } from '@/lib/content/request-locale'
+import { absoluteUrl, breadcrumbJsonLd, getServerUrl } from '@/lib/seo'
 
 const PATH = '/our-projects'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [settings, page] = await Promise.all([getSiteSettings(), getProjectsPage()])
-  return buildMetadata({
-    settings,
-    title: page.seo.metaTitle || 'Our Projects',
-    description: page.seo.metaDescription || page.banner.intro,
-    image: page.seo.ogImage ?? page.banner.image,
-    path: PATH,
-  })
+  return metadataFor(await loadFixed('projects', ui(await getRequestLocale()).ourProjects), PATH)
 }
 
 export default async function OurProjectsPage() {
-  const [settings, page, projects] = await Promise.all([getSiteSettings(), getProjectsPage(), getProjects(100)])
-  const completed = projects.filter((p) => p.status === 'completed')
-  const inProgress = projects.filter((p) => p.status === 'in-progress')
-
+  const t = ui(await getRequestLocale())
+  const [l, projects] = await Promise.all([loadFixed('projects', t.ourProjects), getProjects(200)])
+  const { settings } = l
   const schema: Record<string, unknown>[] = [
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
       '@id': `${absoluteUrl(PATH, settings.locale)}#webpage`,
       url: absoluteUrl(PATH, settings.locale),
-      name: page.seo.metaTitle || `Projects — ${settings.companyName}`,
-      description: page.seo.metaDescription || page.banner.intro,
+      name: l.title,
+      description: l.description,
+      inLanguage: settings.locale,
       isPartOf: { '@id': `${getServerUrl()}/#website` },
       about: { '@id': `${getServerUrl()}/#organization` },
     },
     {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      itemListElement: projects.map((p, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        name: p.title,
-        url: absoluteUrl(p.url, settings.locale),
-      })),
+      itemListElement: projects.map((p, i) => ({ '@type': 'ListItem', position: i + 1, name: p.title, url: absoluteUrl(p.url, settings.locale) })),
     },
-    breadcrumbJsonLd([
-      { name: 'Home', path: '/' },
-      { name: 'Our Projects', path: PATH },
-    ], settings.locale),
+    breadcrumbJsonLd([{ name: t.home, path: '/' }, { name: t.ourProjects, path: PATH }], settings.locale),
+    ...faqSchema(l),
   ]
 
   return (
     <>
       <JsonLd data={schema} />
-      <PageBanner
-        eyebrow={page.banner.eyebrow}
-        title={page.banner.heading}
-        intro={page.banner.intro}
-        image={page.banner.image}
-        crumbs={[{ label: 'Home', href: '/' }, { label: 'Our Projects' }]}
-      />
-      <ProjectsExplorer completed={completed} inProgress={inProgress} page={page} />
-      <ClosingCta data={page.closing} />
+      <PageSections page={l.page} title={l.title} ctx={sectionContext(l, { key: 'projects', path: PATH, crumbs: [{ label: t.home, href: '/' }, { label: t.ourProjects }] })} />
     </>
   )
 }

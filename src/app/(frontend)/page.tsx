@@ -1,35 +1,22 @@
 import type { Metadata } from 'next'
 
-import { Clients } from '@/components/home/Clients'
-import { GetInTouch } from '@/components/home/GetInTouch'
-import { Hero } from '@/components/home/Hero'
-import { Portfolio } from '@/components/home/Portfolio'
-import { WhatWeDo } from '@/components/home/WhatWeDo'
-import { WhoWeAre } from '@/components/home/WhoWeAre'
-import { WhyWorkWithUs } from '@/components/home/WhyWorkWithUs'
+import { PageSections } from '@/components/sections/PageSections'
+import { faqSchema, loadFixed, metadataFor, sectionContext } from '@/components/sections/live-page'
 import { JsonLd } from '@/components/ui/JsonLd'
-import { getClients, getHomePage, getProjects, getServices, getSiteSettings } from '@/lib/content'
-import { absoluteUrl, buildMetadata, getServerUrl, webPageJsonLd } from '@/lib/seo'
+import { getServices } from '@/lib/content'
+import { absoluteUrl, getServerUrl, webPageJsonLd } from '@/lib/seo'
+
+const PATH = '/'
 
 export async function generateMetadata(): Promise<Metadata> {
-  const [settings, home] = await Promise.all([getSiteSettings(), getHomePage()])
-  return buildMetadata({
-    settings,
-    title: home.seo.metaTitle || undefined, // empty → the site default title
-    description: home.seo.metaDescription || undefined,
-    image: home.seo.ogImage,
-    path: '/',
-  })
+  // no SEO title set → the site's default title (Site settings)
+  return metadataFor(await loadFixed('home', ''), PATH, { home: true })
 }
 
 export default async function HomePage() {
-  const [settings, home, services, projects, clients] = await Promise.all([
-    getSiteSettings(),
-    getHomePage(),
-    getServices(),
-    getProjects(),
-    getClients(),
-  ])
+  const [l, services] = await Promise.all([loadFixed('home', ''), getServices()])
+  const { settings } = l
+  const name = l.title || settings.seo.defaultTitle
 
   // Each service is described to search engines as a Service offered by the organisation.
   const serviceSchema = services.map((s) => ({
@@ -44,26 +31,8 @@ export default async function HomePage() {
 
   return (
     <>
-      <JsonLd
-        data={[
-          webPageJsonLd({
-            locale: settings.locale,
-            name: home.seo.metaTitle || settings.seo.defaultTitle,
-            description: home.seo.metaDescription || settings.seo.defaultDescription,
-            path: '/',
-          }),
-          ...serviceSchema,
-        ]}
-      />
-      {/* If the hero is switched off in the CMS the page still needs exactly one H1. */}
-      {!home.hero.enabled && <h1 className="sr-only">{settings.companyName}</h1>}
-      <Hero hero={home.hero} highlights={home.highlights} />
-      <WhoWeAre data={home.whoWeAre} />
-      <WhatWeDo data={home.whatWeDo} services={services} />
-      <WhyWorkWithUs data={home.why} />
-      <Portfolio data={home.portfolio} projects={projects} />
-      <Clients data={home.clients} clients={clients} />
-      <GetInTouch data={home.contact} settings={settings} serviceNames={services.map((s) => s.title)} />
+      <JsonLd data={[webPageJsonLd({ locale: settings.locale, name, description: l.description, path: PATH }), ...serviceSchema, ...faqSchema(l)]} />
+      <PageSections page={l.page} title={settings.companyName} ctx={sectionContext(l, { key: 'home', path: PATH, crumbs: [] })} />
     </>
   )
 }

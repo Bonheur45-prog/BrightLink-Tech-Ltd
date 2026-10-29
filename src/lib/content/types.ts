@@ -10,6 +10,8 @@ export type MediaRef = {
   width?: number
   height?: number
   mimeType?: string
+  /** videos only: still picture shown before the video plays */
+  poster?: string
 }
 
 export type Cta = { label: string; url: string; newTab: boolean }

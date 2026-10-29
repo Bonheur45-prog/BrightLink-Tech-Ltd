@@ -86,7 +86,7 @@ export const SECTIONS: SectionDef[] = [
       { value: 'split', label: 'Title left, photo right' },
       { value: 'plain', label: 'Colour only' },
     ],
-    fields: [eyebrow, heading, intro, { key: 'image', label: 'Photo', kind: 'media' }],
+    fields: [eyebrow, heading, intro, { key: 'image', label: 'Photo', kind: 'media' }, { key: 'cta', label: 'Button (optional)', kind: 'link' }],
   },
   {
     type: 'highlights',
@@ -137,6 +137,7 @@ export const SECTIONS: SectionDef[] = [
     description: 'Cards for the published services (edited under Services).',
     variants: [
       { value: 'cards', label: 'Cards' },
+      { value: 'large', label: 'Large cards (all key points)' },
       { value: 'list', label: 'List' },
     ],
     fields: [
@@ -177,6 +178,8 @@ export const SECTIONS: SectionDef[] = [
       },
       { key: 'limit', label: 'How many', kind: 'number', min: 1, max: 60, default: 6 },
       { key: 'viewAll', label: '“View all” link', kind: 'link' },
+      { key: 'secondHeading', label: 'Heading for projects in progress', kind: 'text', max: 160, hint: 'Only for “Grid with filters” showing all projects: completed and in-progress projects are then shown as two groups.' },
+      { key: 'secondIntro', label: 'Introduction for projects in progress', kind: 'long', max: 800 },
     ],
   },
   {
@@ -272,6 +275,7 @@ export const SECTIONS: SectionDef[] = [
     variants: [
       { value: 'split', label: 'Details left, form right' },
       { value: 'stacked', label: 'Details above the form' },
+      { value: 'page', label: 'Full contact page (details, form and map)' },
     ],
     fields: [
       eyebrow,

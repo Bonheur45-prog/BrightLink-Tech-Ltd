@@ -82,6 +82,15 @@ jobs:
           check /blog/feed.xml 200
           check /admin/api/export/leads 401
           check /sitemap.xml 200
+          check /our-services 200
+          check /our-services/software-development 200
+          check /our-services/not-a-service 404
+          check /our-projects 200
+          check /our-projects/stockpro 200
+          check /our-projects/not-a-project 404
+          check /blog 200
+          # every page is drawn from its page-builder sections: the home page keeps the "#get-in-touch" anchor
+          curl -s http://localhost:3000/ | grep -q 'id="get-in-touch"' || { echo "::error title=Smoke::home page has no #get-in-touch section"; fail=1; }
           # languages: French is off after the seed, so its pages send visitors to English; "/en/…" is not an address
           redir() { got=$(curl -s -o /dev/null -w '%{http_code} %{redirect_url}' "http://localhost:3000$1"); if [ "$got" != "$2 http://localhost:3000$3" ]; then echo "::error title=Smoke::$1 gave '$got', expected '$2 $3'"; fail=1; fi; }
           redir /fr/about-us 307 /about-us
