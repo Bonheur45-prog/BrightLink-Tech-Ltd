@@ -30,6 +30,7 @@ export type SettingsInitial = {
   defaultOg: PickedMedia | null;
   titleTemplate: string;
   googleSiteVerification: string;
+  googleAnalyticsId: string;
   enabledLocales: Locale[];
   headingFont: FontKey;
   bodyFont: FontKey;
@@ -162,6 +163,7 @@ export function SettingsForm({ initial: s }: { initial: SettingsInitial }) {
         </div>
         {text('titleTemplate', 'Title pattern', { required: true, max: 120, hint: '%s is replaced by the page title, e.g. “%s | BrightLink Technologies”.' })}
         {text('googleSiteVerification', 'Google Search Console code', { max: 300, hint: 'Optional. Paste the code or the whole meta tag Google gives you.' })}
+        {text('googleAnalyticsId', 'Google Analytics ID', { max: 2000, hint: 'Optional. The Measurement ID (G-…) from Google Analytics → Admin → Data streams. Leave empty to turn analytics off.' })}
         <MediaField name="defaultOgMediaId" label="Default share image" initial={s.defaultOg} hint="Shown when a page is shared on WhatsApp, LinkedIn… and has no image of its own. Best size 1200 × 630." />
       </Fieldset>
 

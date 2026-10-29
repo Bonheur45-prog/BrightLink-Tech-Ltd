@@ -61,3 +61,8 @@ and `TURNSTILE_SECRET_KEY` to the VPS `.env` and restart. The contact form then 
 server refuses messages without a valid one. If Cloudflare itself cannot be reached, messages are let through (the limit
 of 5 messages per visitor per 10 minutes still applies) so a real enquiry is never lost. Without the keys the check is off.
 If a visitor's browser blocks the check, the form tells them to email you instead.
+
+## Google Analytics
+CMS → **Site settings** → SEO → **Google Analytics ID**: paste the Measurement ID (`G-…`) from Google Analytics →
+Admin → Data streams → your web stream (pasting Google's whole tag snippet also works; the ID is taken from it).
+It shows on the public pages within about a minute; the CMS (`/admin`) is never tracked. Empty the field to turn it off.

@@ -36,6 +36,7 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
       'BrightLink Technologies Ltd builds websites, software and digital solutions that help businesses in Rwanda and beyond grow.',
     defaultOgImage: null,
     googleSiteVerification: '',
+    googleAnalyticsId: '',
   },
   headingFont: 'outfit',
   bodyFont: 'inter',

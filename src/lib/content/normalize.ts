@@ -119,6 +119,7 @@ export function normalizeSettings(raw: Raw): SiteSettingsData {
       defaultDescription: str(raw.seo?.defaultDescription) || d.seo.defaultDescription,
       defaultOgImage: toMedia(raw.seo?.defaultOgImage),
       googleSiteVerification: str(raw.seo?.googleSiteVerification),
+      googleAnalyticsId: str(raw.seo?.googleAnalyticsId),
     },
   }
 }

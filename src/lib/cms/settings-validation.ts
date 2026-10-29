@@ -47,6 +47,7 @@ export type SettingsData = {
   defaultOgMediaId: string | null;
   titleTemplate: string;
   googleSiteVerification: string;
+  googleAnalyticsId: string;
   enabledLocales: Locale[];
   headingFont: FontKey;
   bodyFont: FontKey;
@@ -66,6 +67,13 @@ export function verificationCode(raw: string): string {
   const v = raw.trim();
   const m = v.match(/content=["']([^"']+)["']/i);
   return (m ? m[1] : v).trim();
+}
+
+/** The "G-…" ID from whatever was pasted: the ID itself or Google's whole tag snippet. */
+export function analyticsId(raw: string): string {
+  const v = raw.trim();
+  const m = v.match(/\bG-[A-Z0-9]{4,20}\b/i);
+  return (m ? m[0] : v).toUpperCase();
 }
 
 export function validateSettings(input: Input): Validation<SettingsData> {
@@ -130,6 +138,11 @@ export function validateSettings(input: Input): Validation<SettingsData> {
     errors.googleSiteVerification = 'Paste only the code Google gives you (or the whole meta tag).';
   }
 
+  const googleAnalyticsId = analyticsId(input.get('googleAnalyticsId'));
+  if (googleAnalyticsId && !/^G-[A-Z0-9]{4,20}$/.test(googleAnalyticsId)) {
+    errors.googleAnalyticsId = 'Paste the Measurement ID from Google Analytics. It starts with G-, e.g. G-AB12CD34EF.';
+  }
+
   const chosen = input.getAll('enabledLocales');
   const enabledLocales = locales.filter((l) => l === 'en' || chosen.includes(l)); // English is always on
 
@@ -170,6 +183,7 @@ export function validateSettings(input: Input): Validation<SettingsData> {
       defaultOgMediaId: media('defaultOgMediaId'),
       titleTemplate,
       googleSiteVerification,
+      googleAnalyticsId,
       enabledLocales,
       headingFont: isFontKey(hf) ? hf : DEFAULT_HEADING_FONT,
       bodyFont: isFontKey(bf) ? bf : DEFAULT_BODY_FONT,

@@ -59,6 +59,7 @@ export const loadSiteSettings = cachedPublic('site-settings', async (locale: Loc
         defaultDescription: pick('seoDescription') || DEFAULT_SETTINGS.seo.defaultDescription,
         defaultOgImage: (row.defaultOgMediaId && media.get(row.defaultOgMediaId)) || null,
         googleSiteVerification: row.googleSiteVerification,
+        googleAnalyticsId: row.googleAnalyticsId,
       },
       headingFont: isFontKey(row.headingFont) ? row.headingFont : DEFAULT_HEADING_FONT,
       bodyFont: isFontKey(row.bodyFont) ? row.bodyFont : DEFAULT_BODY_FONT,
