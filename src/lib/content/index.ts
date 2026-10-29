@@ -268,7 +268,7 @@ export const getServiceBySlug = cache(async (slug: string): Promise<ServiceDetai
   const locale = await getRequestLocale()
   let detail: ServiceDetail | null = null
   try {
-    const row = await cachedPublic('public-service-detail', async (serviceSlug: string, locale: Locale) => prisma.service.findFirst({
+    const row = await cachedPublic('public-service-detail', async (serviceSlug: string, _locale: Locale) => prisma.service.findFirst({
       where: { slug: serviceSlug, status: 'PUBLISHED', deletedAt: null },
       include: { translations: true, coverMedia: { include: { translations: true } } },
     }))(slug, locale)
@@ -317,7 +317,7 @@ export const getProjectsForService = cache(async (slug: string): Promise<Project
 export const getProjectBySlug = cache(async (slug: string): Promise<ProjectDetail | null> => {
   const locale = await getRequestLocale()
   try {
-    const row = await cachedPublic('public-project-detail', async (projectSlug: string, locale: Locale) => prisma.project.findFirst({
+    const row = await cachedPublic('public-project-detail', async (projectSlug: string, _locale: Locale) => prisma.project.findFirst({
       where: { slug: projectSlug, status: 'PUBLISHED', deletedAt: null },
       include: {
         translations: true,

@@ -2,6 +2,11 @@
 # Needs these repository secrets (Settings → Secrets and variables → Actions):
 #   DATABASE_URL, R2_PUBLIC_HOSTNAME, SITE_URL  (same values as the VPS .env)
 #   VPS_HOST, VPS_USER, VPS_SSH_KEY              (server address, login user, private SSH key)
+#
+# The database usually runs on the VPS and only accepts connections from the VPS itself, so GitHub cannot
+# reach it directly. When DATABASE_URL points at the VPS (localhost, 127.0.0.1 or VPS_HOST), this workflow
+# opens an SSH tunnel to the VPS first and runs the migration through it. A hosted database (e.g. Neon)
+# is used directly.
 name: Deploy to VPS
 
 on:
@@ -33,6 +38,39 @@ jobs:
       - name: Install
         run: npm ci
 
+      - name: Prepare SSH
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          test -n "$VPS_HOST" || { echo "::error title=Missing secret::VPS_HOST is not set"; exit 1; }
+          test -n "$VPS_SSH_KEY" || { echo "::error title=Missing secret::VPS_SSH_KEY is not set"; exit 1; }
+          test -n "$DATABASE_URL" || { echo "::error title=Missing secret::DATABASE_URL is not set"; exit 1; }
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
+
+      - name: Open a tunnel to the database on the VPS (if it is there)
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          # Host and port of the database as seen from the VPS.
+          read -r DB_HOST DB_PORT <<< "$(node -e 'const u = new URL(process.env.DATABASE_URL); console.log(u.hostname.replace(/^\[|\]$/g, ""), u.port || 5432)')"
+          case "$DB_HOST" in
+            localhost|127.0.0.1|::1|"$VPS_HOST") ;;
+            *) echo "Database is at $DB_HOST: connecting directly."; exit 0 ;;
+          esac
+          LOCAL_PORT=15432
+          ssh -i ~/.ssh/id_deploy -o ExitOnForwardFailure=yes -o ServerAliveInterval=30 \
+            -f -N -L "$LOCAL_PORT:127.0.0.1:$DB_PORT" "$VPS_USER@$VPS_HOST"
+          # Same address, but through the tunnel (only for the steps below; the VPS keeps its own .env).
+          TUNNELED=$(node -e 'const u = new URL(process.env.DATABASE_URL); u.hostname = "127.0.0.1"; u.port = process.argv[1]; console.log(u.toString())' "$LOCAL_PORT")
+          echo "::add-mask::$TUNNELED"
+          echo "DATABASE_URL=$TUNNELED" >> "$GITHUB_ENV"
+          echo "Tunnel open: VPS port $DB_PORT -> runner port $LOCAL_PORT."
+
       - name: Apply database changes
         run: npx prisma migrate deploy
 
@@ -51,12 +89,7 @@ jobs:
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
-          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
-          mkdir -p ~/.ssh
-          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_deploy
-          chmod 600 ~/.ssh/id_deploy
-          ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
           SSH="ssh -i ~/.ssh/id_deploy $VPS_USER@$VPS_HOST"
           RELEASE=$(date +%Y%m%d%H%M%S)-${GITHUB_SHA::7}
           scp -i ~/.ssh/id_deploy release.tgz "$VPS_USER@$VPS_HOST:/var/www/brightlink/release.tgz"
