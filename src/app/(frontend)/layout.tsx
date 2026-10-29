@@ -1,15 +1,18 @@
 import type { Metadata, Viewport } from 'next'
+import { redirect } from 'next/navigation'
 import type { CSSProperties, ReactNode } from 'react'
 
 import '@/styles/globals.css'
 import { Footer } from '@/components/layout/Footer'
 import { Header } from '@/components/layout/Header'
+import { LocaleProvider } from '@/components/i18n/LocaleProvider'
+import { ogLocale } from '@/i18n/config'
 import { JsonLd } from '@/components/ui/JsonLd'
 import { getSiteSettings } from '@/lib/content'
 import { getServerUrl, organizationJsonLd, websiteJsonLd } from '@/lib/seo'
 import { fontVar, isFontKey } from '@/lib/fonts'
 import { allFontVariables } from '@/styles/fonts'
-import { getRequestLocale } from '@/lib/content/request-locale'
+import { getRequestLocale, getRequestPath } from '@/lib/content/request-locale'
 
 
 export const viewport: Viewport = {
@@ -37,12 +40,15 @@ export async function generateMetadata(): Promise<Metadata> {
     verification: settings.seo.googleSiteVerification
       ? { google: settings.seo.googleSiteVerification }
       : undefined,
-    openGraph: { type: 'website', siteName: settings.companyName, locale: 'en_US' },
+    openGraph: { type: 'website', siteName: settings.companyName, locale: ogLocale[settings.locale] },
   }
 }
 
 export default async function FrontendLayout({ children }: { children: ReactNode }) {
   const [settings, locale] = await Promise.all([getSiteSettings(), getRequestLocale()])
+  // A language that is switched off in Site settings has no pages: send the visitor to the English one.
+  // Temporary (307), because the language may be switched on later.
+  if (!settings.enabledLocales.includes(locale)) redirect(await getRequestPath())
   // Site-wide fonts chosen in Site settings. Only these two are used by the page, so only their files download.
   const fonts = {
     '--font-heading': `var(${fontVar(isFontKey(settings.headingFont) ? settings.headingFont : 'outfit')})`,
@@ -52,6 +58,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
   return (
     <html lang={locale} data-parallax={settings.parallax ? 'true' : 'false'} className={allFontVariables + (settings.smoothScroll ? ' scroll-smooth' : '')} style={fonts}>
       <body>
+        <LocaleProvider locale={locale}>
         <JsonLd data={[organizationJsonLd(settings), websiteJsonLd(settings)]} />
         <a
           href="#main"
@@ -62,6 +69,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
         <Header />
         <main id="main">{children}</main>
         <Footer />
+        </LocaleProvider>
       </body>
     </html>
   )

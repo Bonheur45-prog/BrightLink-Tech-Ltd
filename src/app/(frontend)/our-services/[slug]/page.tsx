@@ -34,13 +34,14 @@ export default async function ServicePage({ params }: Props) {
   const service = await getServiceBySlug(slug)
   if (!service) notFound()
 
-  const [projects, all, shared] = await Promise.all([getProjectsForService(slug), getServices(), getServicesPage()])
+  const [projects, all, shared, settings] = await Promise.all([getProjectsForService(slug), getServices(), getServicesPage(), getSiteSettings()])
   const others = all.filter((s) => s.slug !== slug)
   // A service can have its own "Why choose us"; otherwise the shared one from Pages → Our Services Page is used.
   const why = service.why ?? (shared.why.enabled ? shared.why : null)
 
   const schema: Record<string, unknown>[] = [
     serviceJsonLd({
+      locale: settings.locale,
       name: service.title,
       description: service.seo.metaDescription || service.shortDescription,
       path: service.url,
@@ -50,7 +51,7 @@ export default async function ServicePage({ params }: Props) {
       { name: 'Home', path: '/' },
       { name: 'Our Services', path: '/our-services' },
       { name: service.title, path: service.url },
-    ]),
+    ], settings.locale),
     ...(service.faqs.length ? [faqJsonLd(service.faqs)] : []),
   ]
 

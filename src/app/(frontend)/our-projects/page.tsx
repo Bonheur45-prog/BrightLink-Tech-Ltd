@@ -29,8 +29,8 @@ export default async function OurProjectsPage() {
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      '@id': `${absoluteUrl(PATH)}#webpage`,
-      url: absoluteUrl(PATH),
+      '@id': `${absoluteUrl(PATH, settings.locale)}#webpage`,
+      url: absoluteUrl(PATH, settings.locale),
       name: page.seo.metaTitle || `Projects — ${settings.companyName}`,
       description: page.seo.metaDescription || page.banner.intro,
       isPartOf: { '@id': `${getServerUrl()}/#website` },
@@ -43,13 +43,13 @@ export default async function OurProjectsPage() {
         '@type': 'ListItem',
         position: i + 1,
         name: p.title,
-        url: absoluteUrl(p.url),
+        url: absoluteUrl(p.url, settings.locale),
       })),
     },
     breadcrumbJsonLd([
       { name: 'Home', path: '/' },
       { name: 'Our Projects', path: PATH },
-    ]),
+    ], settings.locale),
   ]
 
   return (

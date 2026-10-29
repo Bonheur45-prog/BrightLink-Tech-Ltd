@@ -90,6 +90,7 @@ export function normalizeSettings(raw: Raw): SiteSettingsData {
     smoothScroll: d.smoothScroll,
     parallax: d.parallax,
     enabledLocales: d.enabledLocales,
+    locale: d.locale,
     companyName: str(raw.companyName, d.companyName) || d.companyName,
     legalName: str(raw.legalName, d.legalName) || d.legalName,
     tagline: str(raw.tagline, d.tagline) || d.tagline,

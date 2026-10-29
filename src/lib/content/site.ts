@@ -32,7 +32,7 @@ async function mediaRefs(ids: (string | null)[], locale: Locale): Promise<Map<st
 export const loadSiteSettings = cachedPublic('site-settings', async (locale: Locale = 'en'): Promise<SiteSettingsData> => {
   try {
     const row = await prisma.siteSettings.findUnique({ where: { id: 1 }, include: { translations: true } });
-    if (!row) return DEFAULT_SETTINGS;
+    if (!row) return { ...DEFAULT_SETTINGS, locale };
     const t = row.translations.find((x) => x.locale === locale);
     const en = row.translations.find((x) => x.locale === 'en');
     const pick = (k: 'tagline' | 'footerDescription' | 'seoTitle' | 'seoDescription') => t?.[k] || en?.[k] || '';
@@ -64,11 +64,13 @@ export const loadSiteSettings = cachedPublic('site-settings', async (locale: Loc
       bodyFont: isFontKey(row.bodyFont) ? row.bodyFont : DEFAULT_BODY_FONT,
       smoothScroll: row.smoothScroll,
       parallax: row.parallax,
-      enabledLocales: row.enabledLocales,
+      // English is always on, whatever is stored.
+      enabledLocales: row.enabledLocales.includes('en') ? row.enabledLocales : ['en', ...row.enabledLocales],
+      locale,
     };
   } catch (error) {
     console.error('[site] settings could not be loaded; using starter content', error);
-    return DEFAULT_SETTINGS;
+    return { ...DEFAULT_SETTINGS, locale };
   }
 });
 

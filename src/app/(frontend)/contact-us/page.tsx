@@ -1,10 +1,10 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
-import Link from 'next/link'
 
 import { ContactForm } from '@/components/home/ContactForm'
 import { NewsletterForm } from '@/components/home/NewsletterForm'
 import { JsonLd } from '@/components/ui/JsonLd'
+import { SmartLink } from '@/components/ui/SmartLink'
 import {
   ArrowUpRightIcon,
   ClockIcon,
@@ -70,8 +70,8 @@ export default async function ContactUsPage() {
     {
       '@context': 'https://schema.org',
       '@type': 'ContactPage',
-      '@id': `${absoluteUrl(PATH)}#webpage`,
-      url: absoluteUrl(PATH),
+      '@id': `${absoluteUrl(PATH, settings.locale)}#webpage`,
+      url: absoluteUrl(PATH, settings.locale),
       name: contact.seo.metaTitle || `Contact ${settings.companyName}`,
       description: contact.seo.metaDescription || contact.banner.intro,
       isPartOf: { '@id': `${getServerUrl()}/#website` },
@@ -80,7 +80,7 @@ export default async function ContactUsPage() {
     breadcrumbJsonLd([
       { name: 'Home', path: '/' },
       { name: 'Contact Us', path: PATH },
-    ]),
+    ], settings.locale),
   ]
 
   return (
@@ -94,7 +94,7 @@ export default async function ContactUsPage() {
         <div aria-hidden className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_85%_10%,rgba(0,180,190,.24),transparent_42%)]" />
         <div className="container-x">
           <nav aria-label="Breadcrumb" className="mb-10 text-sm text-white/65">
-            <Link href="/" className="transition hover:text-brand-yellow">Home</Link>
+            <SmartLink href="/" className="transition hover:text-brand-yellow">Home</SmartLink>
             <span aria-hidden className="px-2">/</span>
             <span aria-current="page" className="text-white">Contact</span>
           </nav>

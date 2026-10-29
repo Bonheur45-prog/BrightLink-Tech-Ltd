@@ -11,6 +11,7 @@ import { PageBanner } from '@/components/ui/PageBanner'
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { getAllPosts, getBlogCategories, getBlogPage, getSiteSettings } from '@/lib/content'
+import { localizeHref } from '@/i18n/config'
 import { absoluteUrl, breadcrumbJsonLd, buildMetadata, getServerUrl } from '@/lib/seo'
 
 const PATH = '/blog'
@@ -52,22 +53,22 @@ export default async function BlogPage({ searchParams }: Props) {
     {
       '@context': 'https://schema.org',
       '@type': 'Blog',
-      '@id': `${absoluteUrl(PATH)}#blog`,
-      url: absoluteUrl(PATH),
+      '@id': `${absoluteUrl(PATH, settings.locale)}#blog`,
+      url: absoluteUrl(PATH, settings.locale),
       name: `${settings.companyName} Blog`,
       description: blog.seo.metaDescription || blog.banner.intro,
       publisher: { '@id': `${getServerUrl()}/#organization` },
       blogPost: all.slice(0, 10).map((p) => ({
         '@type': 'BlogPosting',
         headline: p.title,
-        url: absoluteUrl(p.url),
+        url: absoluteUrl(p.url, settings.locale),
         datePublished: p.publishedAt,
       })),
     },
     breadcrumbJsonLd([
       { name: 'Home', path: '/' },
       { name: 'Blog', path: PATH },
-    ]),
+    ], settings.locale),
   ]
 
   return (
@@ -86,7 +87,7 @@ export default async function BlogPage({ searchParams }: Props) {
         <div className="container-x">
           <p className="mb-6 text-center font-display text-sm font-bold uppercase tracking-[0.16em] text-brand-blue">Browse by topic</p>
           <CategoryNav categories={categories} total={all.length} />
-          <form action="/blog" role="search" className="mx-auto mt-10 flex max-w-xl gap-2">
+          <form action={localizeHref('/blog', settings.locale)} role="search" className="mx-auto mt-10 flex max-w-xl gap-2">
             <label htmlFor="blog-search" className="sr-only">
               Search articles
             </label>

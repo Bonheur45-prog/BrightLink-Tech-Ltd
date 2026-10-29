@@ -34,7 +34,7 @@ export default async function ProjectPage({ params }: Props) {
   const project = await getProjectBySlug(slug)
   if (!project) notFound()
 
-  const all = await getProjects(100)
+  const [all, settings] = await Promise.all([getProjects(100), getSiteSettings()])
   const related = [
     ...all.filter((p) => p.slug !== slug && p.serviceSlug && p.serviceSlug === project.serviceSlug),
     ...all.filter((p) => p.slug !== slug && (!p.serviceSlug || p.serviceSlug !== project.serviceSlug)),
@@ -45,10 +45,10 @@ export default async function ProjectPage({ params }: Props) {
     {
       '@context': 'https://schema.org',
       '@type': 'CreativeWork',
-      '@id': `${absoluteUrl(project.url)}#project`,
+      '@id': `${absoluteUrl(project.url, settings.locale)}#project`,
       name: project.title,
       description: project.seo.metaDescription || project.shortDescription,
-      url: absoluteUrl(project.url),
+      url: absoluteUrl(project.url, settings.locale),
       creator: { '@id': `${getServerUrl()}/#organization` },
       ...(project.image ? { image: absoluteUrl(project.image.url) } : {}),
       ...(project.externalUrl ? { sameAs: [project.externalUrl] } : {}),
@@ -58,7 +58,7 @@ export default async function ProjectPage({ params }: Props) {
       { name: 'Home', path: '/' },
       { name: 'Our Projects', path: '/our-projects' },
       { name: project.title, path: project.url },
-    ]),
+    ], settings.locale),
   ]
 
   return (

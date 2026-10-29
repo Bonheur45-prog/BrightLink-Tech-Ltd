@@ -42,6 +42,8 @@ export type SiteSettingsData = {
   smoothScroll: boolean
   parallax: boolean
   enabledLocales: ('en' | 'fr' | 'rw')[]
+  /** The language these settings were loaded in (the language of the page being shown). */
+  locale: 'en' | 'fr' | 'rw'
 }
 
 export type NavChild = { label: string; url: string; description: string }

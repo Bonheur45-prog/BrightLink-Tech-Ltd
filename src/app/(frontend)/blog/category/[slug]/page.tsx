@@ -42,8 +42,8 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
     {
       '@context': 'https://schema.org',
       '@type': 'CollectionPage',
-      '@id': `${absoluteUrl(cat.url)}#webpage`,
-      url: absoluteUrl(cat.url),
+      '@id': `${absoluteUrl(cat.url, settings.locale)}#webpage`,
+      url: absoluteUrl(cat.url, settings.locale),
       name: `${cat.name} — ${settings.companyName} Blog`,
       description: cat.description,
       isPartOf: { '@id': `${getServerUrl()}/#website` },
@@ -52,7 +52,7 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
       { name: 'Home', path: '/' },
       { name: 'Blog', path: '/blog' },
       { name: cat.name, path: cat.url },
-    ]),
+    ], settings.locale),
   ]
 
   return (

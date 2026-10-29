@@ -16,7 +16,7 @@ import {
   SocialIcon,
 } from '@/components/ui/Icons'
 import type { HeaderData, MediaRef, NavItem, SocialLink } from '@/lib/content/types'
-import { localeNames, type Locale } from '@/i18n/config'
+import { localeNames, localizeHref, type Locale } from '@/i18n/config'
 
 type Props = {
   company: {
@@ -38,7 +38,8 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 export function HeaderShell({ company, header, locale, enabledLocales, heroEnabled }: Props) {
   const pathname = usePathname()
   const routePath = pathname.replace(/^\/(fr|rw)(?=\/|$)/, '') || '/'
-  const localeHref = (target: Locale) => target === 'en' ? routePath + '?locale=en' : '/' + target + (routePath === '/' ? '' : routePath)
+  // The same page in another language (plain addresses: the address alone decides the language).
+  const localeHref = (target: Locale) => localizeHref(routePath, target)
   const [scrolled, setScrolled] = useState(false)
   const [mobileOpen, setMobileOpen] = useState(false)
   const [openMenu, setOpenMenu] = useState<number | null>(null)

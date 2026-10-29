@@ -41,8 +41,8 @@ export default async function AboutPage() {
     {
       '@context': 'https://schema.org',
       '@type': 'AboutPage',
-      '@id': `${absoluteUrl(PATH)}#webpage`,
-      url: absoluteUrl(PATH),
+      '@id': `${absoluteUrl(PATH, settings.locale)}#webpage`,
+      url: absoluteUrl(PATH, settings.locale),
       name: about.seo.metaTitle || `About ${settings.companyName}`,
       description: about.seo.metaDescription || about.banner.intro,
       isPartOf: { '@id': `${getServerUrl()}/#website` },
@@ -51,7 +51,7 @@ export default async function AboutPage() {
     breadcrumbJsonLd([
       { name: 'Home', path: '/' },
       { name: 'About Us', path: PATH },
-    ]),
+    ], settings.locale),
     // People are described to search engines only when real team members have been added.
     ...team.map((m) => ({
       '@context': 'https://schema.org',

@@ -42,6 +42,7 @@ export const DEFAULT_SETTINGS: SiteSettingsData = {
   smoothScroll: true,
   parallax: true,
   enabledLocales: ['en'],
+  locale: 'en',
 }
 
 /** Starter services (also used by the seed). Editable in /admin → Content → Services. */

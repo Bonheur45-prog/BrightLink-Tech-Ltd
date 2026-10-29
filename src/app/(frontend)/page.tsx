@@ -37,7 +37,7 @@ export default async function HomePage() {
     '@type': 'Service',
     name: s.title,
     description: s.shortDescription,
-    url: absoluteUrl(s.url),
+    url: absoluteUrl(s.url, settings.locale),
     provider: { '@id': `${getServerUrl()}/#organization` },
     areaServed: settings.address.country || 'Rwanda',
   }))
@@ -47,6 +47,7 @@ export default async function HomePage() {
       <JsonLd
         data={[
           webPageJsonLd({
+            locale: settings.locale,
             name: home.seo.metaTitle || settings.seo.defaultTitle,
             description: home.seo.metaDescription || settings.seo.defaultDescription,
             path: '/',
