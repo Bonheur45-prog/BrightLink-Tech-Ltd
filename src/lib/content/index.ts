@@ -6,7 +6,7 @@ import { loadFooter, loadHeader, loadSiteSettings } from './site'
 
 import { normalizeClient, normalizeProject, normalizeProjectDetail, normalizeService, normalizeTeamMember } from './normalize'
 import { prisma } from '@/lib/db'
-import { mediaUrl } from '@/lib/media'
+import { photoUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
 import { loadBlogPage } from './public-pages'
 import { loadPublicCategories, loadPublicPostBySlug, loadPublicPosts } from './public-blog'
@@ -48,6 +48,8 @@ export const getFooter = cache(async (): Promise<FooterData> => loadFooter(await
 
 type PublicMediaRow = {
   objectKey: string
+  kind?: string
+  variants?: unknown
   width: number
   height: number
   mimeType: string
@@ -58,8 +60,8 @@ function publicMedia(row: PublicMediaRow | null | undefined, locale: Locale = 'e
   if (!row) return null
   try {
     return {
-      url: mediaUrl(row.objectKey),
-      alt: row.translations.find((t) => t.locale === locale)?.alt ?? row.translations.find((t) => t.locale === 'en')?.alt ?? '',
+      url: photoUrl(row),
+      alt: row.translations.find((t) => t.locale === locale)?.alt || row.translations.find((t) => t.locale === 'en')?.alt || '',
       width: row.width,
       height: row.height,
       mimeType: row.mimeType,

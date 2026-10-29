@@ -3,7 +3,7 @@ import 'server-only'
 import type { Locale } from '@/i18n/config'
 import { getPublished } from '@/lib/cms/drafts'
 import { prisma } from '@/lib/db'
-import { mediaUrl } from '@/lib/media'
+import { mediaUrl, photoUrl } from '@/lib/media'
 import type { FixedPageKey } from '@/lib/pages/catalogue'
 import { FIXED_PAGE_DEFAULTS, servicePageDefault } from '@/lib/pages/defaults'
 import { pageMediaIds } from '@/lib/pages/media'
@@ -28,13 +28,13 @@ async function loadMedia(ids: string[], locale: Locale): Promise<Record<string, 
   if (!ids.length) return {}
   const rows = await prisma.mediaAsset.findMany({
     where: { id: { in: ids }, deletedAt: null },
-    select: { id: true, kind: true, objectKey: true, posterKey: true, mimeType: true, width: true, height: true, translations: { select: { locale: true, alt: true } } },
+    select: { id: true, kind: true, objectKey: true, posterKey: true, mimeType: true, width: true, height: true, variants: true, translations: { select: { locale: true, alt: true } } },
   })
   const out: Record<string, MediaRef> = {}
   for (const m of rows) {
     try {
       out[m.id] = {
-        url: mediaUrl(m.objectKey),
+        url: photoUrl(m),
         alt: m.translations.find((t) => t.locale === locale)?.alt || m.translations.find((t) => t.locale === 'en')?.alt || '',
         width: m.width,
         height: m.height,

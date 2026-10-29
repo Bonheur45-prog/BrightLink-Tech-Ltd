@@ -1,8 +1,9 @@
 import Image from 'next/image'
 import type { MediaRef } from '@/lib/content/types'
 
-const BUNDLED = { url: '/images/brand/brightlink-logo.png', width: 839, height: 299 }
-const BUNDLED_LIGHT = { url: '/images/brand/brightlink-logo-light.png', width: 839, height: 299 }
+// WebP copies at 256/384/480 px wide sit next to the originals; the image loader picks one (src/lib/image-loader.ts).
+const BUNDLED = { url: '/images/brand/brightlink-logo.webp#w=256.384.480~839', width: 839, height: 299 }
+const BUNDLED_LIGHT = { url: '/images/brand/brightlink-logo-light.webp#w=256.384.480~839', width: 839, height: 299 }
 
 type Props = {
   logo: MediaRef | null

@@ -107,7 +107,7 @@ export default async function ProjectPage({ params }: Props) {
                   ) : (
                     <div className="absolute inset-0 bg-[linear-gradient(135deg,#001a45,#00327f_60%,#0057a3)]">
                       <div className="absolute -right-8 -top-8 size-44 rounded-full bg-brand-yellow/25 blur-2xl" />
-                      <Image src="/images/brand/brightlink-mark.png" alt="" width={212} height={280} aria-hidden className="absolute -bottom-6 -right-4 h-[85%] w-auto opacity-[0.16]" />
+                      <Image src="/images/brand/brightlink-mark.webp#w=~212" alt="" width={212} height={280} aria-hidden className="absolute -bottom-6 -right-4 h-[85%] w-auto opacity-[0.16]" />
                     </div>
                   )}
                 </div>

@@ -1,3 +1,5 @@
+import { variantKeyFor } from './storage/keys';
+
 /**
  * Public URL of a stored media file. Everything lives in the Cloudflare R2 bucket and is served from its
  * custom domain R2_PUBLIC_HOSTNAME (behind Cloudflare's cache).
@@ -33,3 +35,22 @@ export function parseVariants(raw: unknown): StoredVariant[] {
 export function buildSrcSet(objectKey: string, width: number, variants: StoredVariant[]): string {
   return [...variants.map((v) => `${mediaUrl(v.key)} ${v.w}w`), `${mediaUrl(objectKey)} ${width}w`].join(', ');
 }
+
+/**
+ * Address of a photo for the public site. The widths of its smaller stored copies travel with it after
+ * "#w=" (e.g. ".../abc.webp#w=480.960.1600~2400"); the image loader (src/lib/image-loader.ts) reads them
+ * to pick the right ready-made file for each screen, so the server never resizes photos. Browsers and
+ * crawlers ignore everything after "#", so the address also works as it is. Videos get the plain address.
+ */
+export function photoUrl(asset: { objectKey: string; width: number; variants?: unknown; kind?: string; mimeType?: string }): string {
+  const url = mediaUrl(asset.objectKey);
+  if (asset.kind === 'VIDEO' || asset.mimeType?.startsWith('video/')) return url;
+  const widths = parseVariants(asset.variants)
+    .filter((v) => v.w < asset.width && v.key === variantKeyFor(asset.objectKey, v.w)) // the loader rebuilds the name from the width
+    .map((v) => v.w);
+  return `${url}#w=${widths.join('.')}~${asset.width}`;
+}
+
+/** The address without the size marker (for share images, structured data and anything outside <Image>). */
+export const withoutSizes = (url: string) => url.replace(/#w=[\d.]*~\d+$/, '');
+

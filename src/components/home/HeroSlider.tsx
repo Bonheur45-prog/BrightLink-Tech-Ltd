@@ -58,7 +58,7 @@ function BrandBackground() {
       />
       {/* the BrightLink link-mark, very faint, as a brand watermark */}
       <Image
-        src="/images/brand/brightlink-mark.png"
+        src="/images/brand/brightlink-mark.webp#w=~212"
         alt=""
         width={212}
         height={280}
@@ -113,7 +113,7 @@ function HeroVideo({
       playsInline
       autoPlay={eager}
       preload={eager ? 'auto' : 'metadata'}
-      poster={slide.poster?.url}
+      poster={slide.poster?.url.replace(/#w=[\d.]*~\d+$/, '')}
       disablePictureInPicture
       aria-hidden
       tabIndex={-1}
