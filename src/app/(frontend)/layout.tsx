@@ -13,6 +13,7 @@ import { getServerUrl, organizationJsonLd, websiteJsonLd } from '@/lib/seo'
 import { fontVar, isFontKey } from '@/lib/fonts'
 import { allFontVariables } from '@/styles/fonts'
 import { getRequestLocale, getRequestPath } from '@/lib/content/request-locale'
+import { ui } from '@/i18n/ui'
 
 
 export const viewport: Viewport = {
@@ -64,7 +65,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
           href="#main"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-full focus:bg-brand-navy-deep focus:px-5 focus:py-3 focus:text-white"
         >
-          Skip to main content
+          {ui(locale).skipToContent}
         </a>
         <Header />
         <main id="main">{children}</main>

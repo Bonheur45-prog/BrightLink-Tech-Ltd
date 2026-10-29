@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 
+import { useUi } from '@/components/i18n/useUi'
+
 // Cloudflare Turnstile ("are you a person?") inside a form. It adds the hidden field
 // cf-turnstile-response, which the server checks (src/lib/security/turnstile.ts). Only shown when
 // the site key is set in .env.
@@ -41,6 +43,7 @@ export function TurnstileField({ siteKey, resetKey, fallbackEmail }: { siteKey: 
   const box = useRef<HTMLDivElement>(null)
   const widget = useRef<string | null>(null)
   const [failed, setFailed] = useState(false)
+  const t = useUi()
 
   useEffect(() => {
     let cancelled = false
@@ -64,18 +67,17 @@ export function TurnstileField({ siteKey, resetKey, fallbackEmail }: { siteKey: 
   if (failed) {
     return (
       <p role="alert" className="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">
-        {/* TODO: translate for French and Kinyarwanda */}
-        The spam check could not load (a browser extension may be blocking it).{' '}
+        {t.spamCheckBlocked}{' '}
         {fallbackEmail ? (
           <>
-            Please email us at{' '}
+            {t.emailUsAt}{' '}
             <a className="font-semibold underline" href={`mailto:${fallbackEmail}`}>
               {fallbackEmail}
             </a>{' '}
-            instead.
+            {t.instead}
           </>
         ) : (
-          'Please reload the page, or contact us by phone or email.'
+          t.reloadOrContact
         )}
       </p>
     )

@@ -9,6 +9,7 @@ import { JsonLd } from '@/components/ui/JsonLd'
 import { PageBanner } from '@/components/ui/PageBanner'
 import { Reveal } from '@/components/ui/Reveal'
 import { getAllPosts, getBlogCategories, getBlogPage, getSiteSettings } from '@/lib/content'
+import { ui } from '@/i18n/ui'
 import { absoluteUrl, breadcrumbJsonLd, buildMetadata, getServerUrl } from '@/lib/seo'
 
 type Props = { params: Promise<{ slug: string }>; searchParams: Promise<{ page?: string }> }
@@ -30,6 +31,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 export default async function BlogCategoryPage({ params, searchParams }: Props) {
   const [{ slug }, { page: pageParam }] = await Promise.all([params, searchParams])
   const [settings, blog, all, categories] = await Promise.all([getSiteSettings(), getBlogPage(), getAllPosts(), getBlogCategories()])
+  const t = ui(settings.locale)
   const cat = categories.find((c) => c.slug === slug)
   if (!cat) notFound()
 
@@ -49,8 +51,8 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
       isPartOf: { '@id': `${getServerUrl()}/#website` },
     },
     breadcrumbJsonLd([
-      { name: 'Home', path: '/' },
-      { name: 'Blog', path: '/blog' },
+      { name: t.home, path: '/' },
+      { name: t.blog, path: '/blog' },
       { name: cat.name, path: cat.url },
     ], settings.locale),
   ]
@@ -59,11 +61,11 @@ export default async function BlogCategoryPage({ params, searchParams }: Props) 
     <>
       <JsonLd data={schema} />
       <PageBanner
-        eyebrow="Blog category"
+        eyebrow={t.blogCategory}
         title={cat.name}
         intro={cat.description}
         image={null}
-        crumbs={[{ label: 'Home', href: '/' }, { label: 'Blog', href: '/blog' }, { label: cat.name }]}
+        crumbs={[{ label: t.home, href: '/' }, { label: t.blog, href: '/blog' }, { label: cat.name }]}
       />
       <section className="bg-white py-14 lg:py-20">
         <div className="container-x">

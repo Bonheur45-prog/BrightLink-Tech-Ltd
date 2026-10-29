@@ -38,10 +38,3 @@ export const CAT: Record<CategoryColor, { chip: string; tile: string; art: strin
     ring: 'hover:ring-brand-navy/40',
   },
 }
-
-/** "18 Oct 2026" — always in UTC so the server and the browser agree. */
-export function formatDate(iso: string): string {
-  const d = new Date(iso)
-  if (Number.isNaN(+d)) return ''
-  return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'UTC' }).format(d)
-}

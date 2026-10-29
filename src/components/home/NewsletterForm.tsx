@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { subscribe, type FormState } from '@/lib/actions'
 import { CheckIcon, SendIcon } from '@/components/ui/Icons'
+import { useUi } from '@/components/i18n/useUi'
 
 const initial: FormState = { status: 'idle', message: '' }
 
@@ -13,6 +14,7 @@ export function NewsletterForm({
   buttonLabel: string
   source?: string
 }) {
+  const t = useUi()
   const [state, action, pending] = useActionState(subscribe, initial)
 
   if (state.status === 'success') {
@@ -29,7 +31,7 @@ export function NewsletterForm({
       <input type="hidden" name="source" value={source} />
       <div className="flex flex-col gap-3 sm:flex-row">
         <label htmlFor="newsletter-email" className="sr-only">
-          Email address
+          {t.emailAddress}
         </label>
         <input
           id="newsletter-email"
@@ -38,7 +40,7 @@ export function NewsletterForm({
           defaultValue={state.values?.email}
           required
           autoComplete="email"
-          placeholder="Your email address"
+          placeholder={t.yourEmailAddress}
           aria-invalid={state.status === 'error'}
           aria-describedby={state.status === 'error' ? 'newsletter-error' : undefined}
           className="min-h-12 min-w-0 flex-1 rounded-full border border-white/25 bg-white/10 px-5 text-white placeholder:text-white/60 focus:border-brand-yellow focus:outline-none focus:ring-2 focus:ring-brand-yellow/40"
@@ -46,7 +48,7 @@ export function NewsletterForm({
         {/* honeypot: hidden from people, irresistible to bots */}
         <input type="text" name="company_website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
         <button type="submit" disabled={pending} className="btn btn-primary disabled:opacity-70">
-          {pending ? 'Subscribing…' : buttonLabel}
+          {pending ? t.subscribing : buttonLabel || t.subscribe}
           {!pending && <SendIcon width={18} height={18} />}
         </button>
       </div>

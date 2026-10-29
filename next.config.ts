@@ -10,6 +10,12 @@ const config: NextConfig = {
   devIndicators: false,
   // sharp and the Prisma client are loaded from node_modules at runtime instead of being bundled.
   serverExternalPackages: ['sharp'],
+  // The Prisma client reads its query compiler (a .wasm file) from disk at runtime, so the build's file
+  // tracing does not see it. Without this line the built site cannot reach the database and every page
+  // quietly shows the starter content.
+  outputFileTracingIncludes: {
+    '/**': ['./node_modules/.prisma/client/query_compiler_bg.wasm'],
+  },
   images: {
     // Photos are never resized on this server: the loader picks the ready-made WebP copy stored in R2
     // (480 / 960 / 1600 px or the original) for each screen size. See src/lib/image-loader.ts.

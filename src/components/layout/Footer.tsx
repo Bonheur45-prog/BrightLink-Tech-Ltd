@@ -3,6 +3,7 @@ import { MailIcon, MapPinIcon, PhoneIcon, SOCIAL_LABELS, SocialIcon } from '@/co
 import { SmartLink } from '@/components/ui/SmartLink'
 import { getFooter, getServices, getSiteSettings } from '@/lib/content'
 import type { FooterData, ServiceItem, SiteSettingsData } from '@/lib/content/types'
+import { ui } from '@/i18n/ui'
 
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
@@ -22,7 +23,8 @@ export function FooterView({
   services: ServiceItem[]
 }) {
   const year = new Date().getFullYear()
-  const copyright = footer.copyrightText || `© ${year} ${settings.legalName}. All rights reserved.`
+  const t = ui(settings.locale)
+  const copyright = footer.copyrightText || `© ${year} ${settings.legalName}. ${t.allRightsReserved}`
   const place = [settings.address.street, settings.address.city, settings.address.country].filter(Boolean).join(', ')
   const phones = [settings.phone, settings.secondaryPhone].filter(Boolean)
   const heading = 'font-display text-lg font-semibold !text-white'
@@ -39,7 +41,7 @@ export function FooterView({
           </SmartLink>
           <p className="mt-5 max-w-sm leading-relaxed">{settings.footerDescription || settings.tagline}</p>
           {settings.socials.length > 0 && (
-            <ul className="mt-6 flex flex-wrap gap-2.5" aria-label="Social media">
+            <ul className="mt-6 flex flex-wrap gap-2.5" aria-label={t.socialMedia}>
               {settings.socials.map((s) => (
                 <li key={`${s.platform}-${s.url}`}>
                   <a
@@ -58,8 +60,8 @@ export function FooterView({
         </div>
 
         {/* quick links */}
-        <nav aria-label="Footer" className="lg:col-span-2">
-          <h2 className={heading}>Quick links</h2>
+        <nav aria-label={t.footerNav} className="lg:col-span-2">
+          <h2 className={heading}>{t.quickLinks}</h2>
           <ul className="mt-5 space-y-3">
             {footer.quickLinks.map((l) => (
               <li key={`${l.label}-${l.url}`}>
@@ -73,8 +75,8 @@ export function FooterView({
 
         {/* services */}
         {footer.showServices && services.length > 0 && (
-          <nav aria-label="Services" className="lg:col-span-3">
-            <h2 className={heading}>Our services</h2>
+          <nav aria-label={t.servicesNav} className="lg:col-span-3">
+            <h2 className={heading}>{t.ourServices}</h2>
             <ul className="mt-5 space-y-3">
               {services.map((s) => (
                 <li key={s.id}>
@@ -89,7 +91,7 @@ export function FooterView({
 
         {/* contact */}
         <div className={footer.showServices && services.length > 0 ? 'lg:col-span-3' : 'lg:col-span-5'}>
-          <h2 className={heading}>Contact us</h2>
+          <h2 className={heading}>{t.contactUs}</h2>
           <ul className="mt-5 space-y-4">
             {settings.email && (
               <li className="flex gap-3">
