@@ -6,7 +6,6 @@ import { mediaUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
 import { safeHref } from '@/lib/blog/render'
 import { normalizeBlogCategory, normalizeBlogPost } from './normalize'
-import { lexicalToBlocks } from './richtext'
 import type { BlogCategory, BlogPost, BlogPostFull } from './types'
 
 type MediaRow = {
@@ -131,7 +130,8 @@ const publishedWhere = (now: Date) => ({
   publishedAt: { lte: now },
 })
 
-const listRows = cachedPublic('public-blog-post-list', async (locale: Locale) => {
+// `_locale` is not used by the query: it keeps one cache entry per language.
+const listRows = cachedPublic('public-blog-post-list', async (_locale: Locale) => {
   const now = new Date()
   return prisma.post.findMany({
     where: publishedWhere(now),

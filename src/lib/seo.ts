@@ -1,9 +1,12 @@
 import type { Metadata } from 'next'
 import type { MediaRef, SiteSettingsData } from './content/types'
 
-/** Public site URL: drives canonical links, sitemap, Open Graph and JSON-LD. */
+/**
+ * Public site URL (SITE_URL in .env, e.g. https://brightlinkltd.com): drives canonical links, the
+ * sitemap, robots.txt, Open Graph and JSON-LD. NEXT_PUBLIC_SERVER_URL is still read as an older name.
+ */
 export function getServerUrl(): string {
-  const url = process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
+  const url = process.env.SITE_URL || process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000'
   return url.replace(/\/+$/, '')
 }
 

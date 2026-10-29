@@ -1,7 +1,7 @@
 import Image from 'next/image'
 
 import { Reveal } from '@/components/ui/Reveal'
-import { Highlighted, SectionHeading } from '@/components/ui/SectionHeading'
+import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ArrowRightIcon, IconByKey } from '@/components/ui/Icons'
 import { SmartLink } from '@/components/ui/SmartLink'
 import type { WhoWeAreData } from '@/lib/content/types'

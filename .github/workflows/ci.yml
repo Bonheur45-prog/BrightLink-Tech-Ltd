@@ -29,7 +29,8 @@ jobs:
           --health-cmd "pg_isready -U brightlink" --health-interval 5s --health-timeout 5s --health-retries 10
     env:
       DATABASE_URL: postgresql://brightlink:brightlink@localhost:5433/brightlink?schema=public
-      SITE_URL: http://localhost:3000
+      # Deliberately not the address the smoke test uses: proves the sitemap and canonicals come from SITE_URL.
+      SITE_URL: https://www.brightlink.test
       R2_PUBLIC_HOSTNAME: media.example.com
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
@@ -84,6 +85,10 @@ jobs:
           # the home page must show the seeded company details and the chosen font variables
           curl -s http://localhost:3000/ | grep -q -- '--font-heading' || { echo "::error title=Smoke::home page has no --font-heading"; fail=1; }
           curl -s http://localhost:3000/ | grep -q 'info@brightlinkltd.com' || { echo "::error title=Smoke::home page lacks the seeded email"; fail=1; }
+          # addresses for search engines must use SITE_URL, never localhost
+          curl -s http://localhost:3000/sitemap.xml | grep -q '<loc>https://www.brightlink.test/about-us' || { echo "::error title=Smoke::sitemap does not use SITE_URL"; fail=1; }
+          curl -s http://localhost:3000/robots.txt | grep -q 'Sitemap: https://www.brightlink.test/sitemap.xml' || { echo "::error title=Smoke::robots.txt does not use SITE_URL"; fail=1; }
+          curl -s http://localhost:3000/about-us | grep -q 'rel="canonical" href="https://www.brightlink.test/about-us"' || { echo "::error title=Smoke::canonical does not use SITE_URL"; fail=1; }
           # the RSS feed must come from the database (seeded articles)
           curl -s http://localhost:3000/blog/feed.xml | grep -q 'StockPro' || { echo "::error title=Smoke::RSS feed lacks the seeded articles"; fail=1; }
           if [ $fail = 1 ]; then tail -30 /tmp/server.txt | sed 's/^/::error title=Server log::/'; exit 1; fi
