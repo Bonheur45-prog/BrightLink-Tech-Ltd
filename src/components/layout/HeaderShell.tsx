@@ -5,6 +5,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { Logo } from '@/components/ui/Logo'
 import { SmartLink } from '@/components/ui/SmartLink'
+import { useUi } from '@/components/i18n/useUi'
 import {
   ArrowRightIcon,
   ChevronDownIcon,
@@ -37,6 +38,7 @@ const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
 
 export function HeaderShell({ company, header, locale, enabledLocales, heroEnabled }: Props) {
   const pathname = usePathname()
+  const t = useUi()
   const routePath = pathname.replace(/^\/(fr|rw)(?=\/|$)/, '') || '/'
   // The same page in another language (plain addresses: the address alone decides the language).
   const localeHref = (target: Locale) => localizeHref(routePath, target)
@@ -171,7 +173,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
                     {topBar.message && <span className="text-white/90">{topBar.message}</span>}
                   </div>
                   {showSocials && (
-                    <ul className="flex items-center gap-1" aria-label="Social media">
+                    <ul className="flex items-center gap-1" aria-label={t.socialMedia}>
                       {company.socials.map((s) => (
                         <li key={`${s.platform}-${s.url}`}>
                           <a
@@ -195,7 +197,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
 
         {/* ------------------------------------------------ main bar */}
         <div className="container-x flex h-[4.5rem] items-center justify-between gap-6 lg:h-20">
-          <SmartLink href="/" aria-label={`${company.name} — home`} className="shrink-0 rounded-lg">
+          <SmartLink href="/" aria-label={`${company.name} — ${t.homeLink}`} className="shrink-0 rounded-lg">
             <Logo
               logo={company.logo}
               logoLight={company.logoLight}
@@ -207,7 +209,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
           </SmartLink>
 
           {/* desktop navigation */}
-          <nav ref={navRef} aria-label="Main" className="hidden lg:block">
+          <nav ref={navRef} aria-label={t.mainNav} className="hidden lg:block">
             <ul className="flex items-center gap-1 xl:gap-2">
               {header.navItems.map((item, i) => {
                 const active = isActive(item)
@@ -285,7 +287,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
 
           <div className="flex items-center gap-3">
             {enabledLocales.length > 1 && (
-              <nav aria-label="Language" className="hidden items-center gap-1 lg:flex">
+              <nav aria-label={t.language} className="hidden items-center gap-1 lg:flex">
                 {enabledLocales.map((target) => <a key={target} href={localeHref(target)} lang={target} aria-current={locale === target ? 'page' : undefined} className={`rounded-md px-2 py-1 text-xs font-semibold uppercase transition ${linkTone} ${locale === target ? 'underline underline-offset-4' : ''}`}>{target}</a>)}
               </nav>
             )}
@@ -302,7 +304,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
               ref={menuBtnRef}
               type="button"
               onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
+              aria-label={t.openMenu}
               aria-expanded={mobileOpen}
               aria-controls="mobile-menu"
               className={`grid size-11 place-items-center rounded-full border transition lg:hidden ${
@@ -328,7 +330,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
         id="mobile-menu"
         role="dialog"
         aria-modal="true"
-        aria-label="Menu"
+        aria-label={t.menu}
         aria-hidden={!mobileOpen}
         inert={!mobileOpen}
         className={`fixed inset-0 z-[60] lg:hidden ${mobileOpen ? 'visible' : 'invisible delay-300'}`}
@@ -336,7 +338,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
         <button
           type="button"
           tabIndex={-1}
-          aria-label="Close menu"
+          aria-label={t.closeMenu}
           onClick={closeMobile}
           className={`absolute inset-0 bg-brand-navy-deep/70 backdrop-blur-sm transition-opacity duration-300 ${
             mobileOpen ? 'opacity-100' : 'opacity-0'
@@ -359,7 +361,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
               ref={closeBtnRef}
               type="button"
               onClick={closeMobile}
-              aria-label="Close menu"
+              aria-label={t.closeMenu}
               className="grid size-11 place-items-center rounded-full border border-white/25 transition hover:bg-white/10"
             >
               <CloseIcon width={22} height={22} />
@@ -367,7 +369,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
           </div>
           <div aria-hidden className="h-0.5 bg-brand-link" />
 
-          <nav aria-label="Mobile" className="flex-1 px-5 py-6">
+          <nav aria-label={t.mobileNav} className="flex-1 px-5 py-6">
             <ul className="space-y-1">
               {header.navItems.map((item: NavItem, i) => {
                 const active = isActive(item)
@@ -425,7 +427,7 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
             </ul>
 
             {enabledLocales.length > 1 && (
-              <nav aria-label="Language" className="mt-8 flex items-center gap-3 border-t border-white/10 pt-5">
+              <nav aria-label={t.language} className="mt-8 flex items-center gap-3 border-t border-white/10 pt-5">
                 {enabledLocales.map((target) => <a key={target} href={localeHref(target)} lang={target} aria-current={locale === target ? 'page' : undefined} className={`rounded-lg px-3 py-2 text-sm font-semibold ${locale === target ? 'bg-white/10 text-brand-yellow' : 'text-white/75 hover:text-white'}`}>{localeNames[target]}</a>)}
               </nav>
             )}

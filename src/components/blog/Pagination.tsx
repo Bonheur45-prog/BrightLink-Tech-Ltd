@@ -1,7 +1,11 @@
+'use client'
+
 import { SmartLink } from '@/components/ui/SmartLink'
+import { useUi } from '@/components/i18n/useUi'
 
 /** Server-rendered "Previous / Next" with numbered pages. `basePath` may already hold other query parameters. */
 export function Pagination({ page, totalPages, basePath, query = {} }: { page: number; totalPages: number; basePath: string; query?: Record<string, string> }) {
+  const t = useUi()
   if (totalPages <= 1) return null
   const href = (n: number) => {
     const p = new URLSearchParams(query)
@@ -14,7 +18,7 @@ export function Pagination({ page, totalPages, basePath, query = {} }: { page: n
       <SmartLink
         href={href(n)}
         aria-current={n === page ? 'page' : undefined}
-        aria-label={`Page ${n}`}
+        aria-label={`${t.page} ${n}`}
         className={`grid size-11 place-items-center rounded-full font-semibold transition ${n === page ? 'bg-brand-navy text-white' : 'bg-white text-brand-navy ring-1 ring-slate-200 hover:ring-brand-blue/40'}`}
       >
         {n}
@@ -22,16 +26,16 @@ export function Pagination({ page, totalPages, basePath, query = {} }: { page: n
     </li>
   )
   return (
-    <nav aria-label="Pagination" className="mt-14 flex flex-wrap items-center justify-center gap-3">
+    <nav aria-label={t.pagination} className="mt-14 flex flex-wrap items-center justify-center gap-3">
       {page > 1 && (
         <SmartLink href={href(page - 1)} rel="prev" className="btn btn-outline">
-          ← Newer
+          {t.newer}
         </SmartLink>
       )}
       <ul className="flex flex-wrap items-center gap-2">{Array.from({ length: totalPages }, (_, i) => num(i + 1))}</ul>
       {page < totalPages && (
         <SmartLink href={href(page + 1)} rel="next" className="btn btn-outline">
-          Older →
+          {t.older}
         </SmartLink>
       )}
     </nav>

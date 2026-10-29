@@ -12,6 +12,7 @@ import { SectionHeading } from '@/components/ui/SectionHeading'
 import { ArrowRightIcon, ArrowUpRightIcon, CheckIcon } from '@/components/ui/Icons'
 import { SmartLink } from '@/components/ui/SmartLink'
 import { getProjectBySlug, getProjects, getSiteSettings } from '@/lib/content'
+import { fill, ui } from '@/i18n/ui'
 import { absoluteUrl, breadcrumbJsonLd, buildMetadata, getServerUrl } from '@/lib/seo'
 
 type Props = { params: Promise<{ slug: string }> }
@@ -39,6 +40,7 @@ export default async function ProjectPage({ params }: Props) {
     ...all.filter((p) => p.slug !== slug && p.serviceSlug && p.serviceSlug === project.serviceSlug),
     ...all.filter((p) => p.slug !== slug && (!p.serviceSlug || p.serviceSlug !== project.serviceSlug)),
   ].slice(0, 3)
+  const t = ui(settings.locale)
   const inProgress = project.status === 'in-progress'
 
   const schema: Record<string, unknown>[] = [
@@ -55,8 +57,8 @@ export default async function ProjectPage({ params }: Props) {
       ...(project.category ? { genre: project.category } : {}),
     },
     breadcrumbJsonLd([
-      { name: 'Home', path: '/' },
-      { name: 'Our Projects', path: '/our-projects' },
+      { name: t.home, path: '/' },
+      { name: t.ourProjects, path: '/our-projects' },
       { name: project.title, path: project.url },
     ], settings.locale),
   ]
@@ -65,17 +67,17 @@ export default async function ProjectPage({ params }: Props) {
     <>
       <JsonLd data={schema} />
       <PageBanner
-        eyebrow={[project.category, inProgress ? 'In progress' : 'Completed'].filter(Boolean).join(' · ')}
+        eyebrow={[project.category, inProgress ? t.inProgress : t.completed].filter(Boolean).join(' · ')}
         title={project.title}
         intro={project.shortDescription}
         image={null}
-        crumbs={[{ label: 'Home', href: '/' }, { label: 'Our Projects', href: '/our-projects' }, { label: project.title }]}
+        crumbs={[{ label: t.home, href: '/' }, { label: t.ourProjects, href: '/our-projects' }, { label: project.title }]}
       />
 
       <section id="overview" aria-labelledby="overview-heading" className="bg-white py-20 lg:py-24">
         <div className="container-x grid gap-12 lg:grid-cols-12 lg:gap-14">
           <div className="lg:col-span-7">
-            <SectionHeading id="overview-heading" eyebrow="About this project" title={`What is ${project.title}?`} />
+            <SectionHeading id="overview-heading" eyebrow={t.aboutThisProject} title={fill(t.whatIs, { name: project.title })} />
             <div className="mt-6 space-y-4 text-lg leading-relaxed text-slate-600">
               {project.paragraphs.map((t, i) => (
                 <Reveal key={i} delay={120 + i * 80}>
@@ -113,25 +115,25 @@ export default async function ProjectPage({ params }: Props) {
                 </div>
                 <dl className="space-y-4 p-6">
                   <div className="flex items-center justify-between gap-4">
-                    <dt className="text-sm text-slate-500">Status</dt>
+                    <dt className="text-sm text-slate-500">{t.status}</dt>
                     <dd>
                       <StatusBadge status={project.status} />
                     </dd>
                   </div>
                   {inProgress && (
                     <div>
-                      <ProgressBar value={project.progress} label="Progress so far" large />
+                      <ProgressBar value={project.progress} label={t.progressSoFar} large />
                     </div>
                   )}
                   {project.category && (
                     <div className="flex items-center justify-between gap-4">
-                      <dt className="text-sm text-slate-500">Type</dt>
+                      <dt className="text-sm text-slate-500">{t.type}</dt>
                       <dd className="font-semibold text-brand-navy-deep">{project.category}</dd>
                     </div>
                   )}
                   {project.serviceSlug && project.serviceTitle && (
                     <div className="flex items-center justify-between gap-4">
-                      <dt className="text-sm text-slate-500">Service</dt>
+                      <dt className="text-sm text-slate-500">{t.service}</dt>
                       <dd>
                         <SmartLink href={`/our-services/${project.serviceSlug}`} className="font-semibold text-brand-blue hover:text-brand-navy">
                           {project.serviceTitle}
@@ -141,7 +143,7 @@ export default async function ProjectPage({ params }: Props) {
                   )}
                   {project.externalUrl && (
                     <a href={project.externalUrl} target="_blank" rel="noopener noreferrer" className="btn btn-primary w-full justify-center">
-                      Visit the live site
+                      {t.visitLiveSite}
                       <ArrowUpRightIcon width={18} height={18} />
                     </a>
                   )}
@@ -155,7 +157,7 @@ export default async function ProjectPage({ params }: Props) {
       {project.gallery.length > 0 && (
         <section id="gallery" aria-labelledby="gallery-heading" className="bg-slate-50 py-20 lg:py-24">
           <div className="container-x">
-            <SectionHeading id="gallery-heading" align="center" eyebrow="Gallery" title={`${project.title} in pictures`} />
+            <SectionHeading id="gallery-heading" align="center" eyebrow={t.gallery} title={fill(t.inPictures, { name: project.title })} />
             <ul className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {project.gallery.map((g, i) => (
                 <Reveal as="li" key={`${g.url}-${i}`} delay={(i % 3) * 100}>
@@ -173,9 +175,9 @@ export default async function ProjectPage({ params }: Props) {
         <section aria-labelledby="related-heading" className="bg-slate-50 py-20 lg:py-24">
           <div className="container-x">
             <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
-              <SectionHeading id="related-heading" title="More of our projects" />
+              <SectionHeading id="related-heading" title={t.moreProjects} />
               <SmartLink href="/our-projects" className="btn btn-outline shrink-0">
-                View all projects
+                {t.viewAllProjects}
                 <ArrowRightIcon width={18} height={18} />
               </SmartLink>
             </div>
@@ -193,10 +195,10 @@ export default async function ProjectPage({ params }: Props) {
       <ClosingCta
         data={{
           enabled: true,
-          heading: 'Want a project like this?',
-          text: 'Tell us what you need and we will discuss the best way to build it.',
-          primaryCta: { label: 'Start a project', url: '/#get-in-touch', newTab: false },
-          secondaryCta: { label: 'Explore our services', url: '/our-services', newTab: false },
+          heading: t.projectCtaHeading,
+          text: t.projectCtaText,
+          primaryCta: { label: t.startProject, url: '/#get-in-touch', newTab: false },
+          secondaryCta: { label: t.exploreServices, url: '/our-services', newTab: false },
         }}
       />
     </>

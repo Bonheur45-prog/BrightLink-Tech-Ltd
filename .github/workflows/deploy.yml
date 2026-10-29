@@ -28,30 +28,52 @@ jobs:
       SITE_URL: ${{ secrets.SITE_URL }}
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
-      - uses: actions/checkout@v4
+      # Until the server is set up (docs/DEPLOY.md), the secrets are missing: skip the deploy with a note
+      # instead of failing every merge.
+      - name: Check the deploy settings
+        id: cfg
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          missing=""
+          for v in VPS_HOST VPS_USER VPS_SSH_KEY DATABASE_URL SITE_URL R2_PUBLIC_HOSTNAME; do
+            [ -n "${!v}" ] || missing="$missing $v"
+          done
+          if [ -n "$missing" ]; then
+            echo "::notice title=Deploy skipped::Not set in Settings → Secrets and variables → Actions:$missing. See docs/DEPLOY.md."
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+        if: steps.cfg.outputs.ready == 'true'
+
+      - uses: actions/setup-node@v5
+        if: steps.cfg.outputs.ready == 'true'
         with:
           node-version: 20
           cache: npm
 
       - name: Install
+        if: steps.cfg.outputs.ready == 'true'
         run: npm ci
 
       - name: Prepare SSH
+        if: steps.cfg.outputs.ready == 'true'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
         run: |
-          test -n "$VPS_HOST" || { echo "::error title=Missing secret::VPS_HOST is not set"; exit 1; }
-          test -n "$VPS_SSH_KEY" || { echo "::error title=Missing secret::VPS_SSH_KEY is not set"; exit 1; }
-          test -n "$DATABASE_URL" || { echo "::error title=Missing secret::DATABASE_URL is not set"; exit 1; }
           mkdir -p ~/.ssh
           printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -H "$VPS_HOST" >> ~/.ssh/known_hosts
 
       - name: Open a tunnel to the database on the VPS (if it is there)
+        if: steps.cfg.outputs.ready == 'true'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -72,12 +94,15 @@ jobs:
           echo "Tunnel open: VPS port $DB_PORT -> runner port $LOCAL_PORT."
 
       - name: Apply database changes
+        if: steps.cfg.outputs.ready == 'true'
         run: npx prisma migrate deploy
 
       - name: Build
+        if: steps.cfg.outputs.ready == 'true'
         run: npm run build
 
       - name: Package the standalone app
+        if: steps.cfg.outputs.ready == 'true'
         run: |
           mkdir -p .next/standalone/public
           if [ -d public ]; then cp -r public/. .next/standalone/public/; fi
@@ -86,6 +111,7 @@ jobs:
           tar -czf release.tgz -C .next/standalone .
 
       - name: Upload and switch to the new release
+        if: steps.cfg.outputs.ready == 'true'
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}

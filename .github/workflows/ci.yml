@@ -1,16 +1,16 @@
-# Checks every push to a branch other than main, and every pull request: database migration, seed,
-# typecheck, lint, unit tests, production build, and a quick start of the built site.
-# It never touches the VPS (deploy.yml does that, on main only).
+# Checks every pull request (once per push to it): database migration, seed, typecheck, lint, unit tests,
+# production build, and a quick start of the built site. It never touches the VPS (deploy.yml does that,
+# on main only). Pushes without a pull request are not checked automatically (Actions → CI → Run workflow
+# checks any branch by hand), so each change uses its minutes once.
 name: CI
 
 on:
-  push:
-    branches-ignore: [main]
   pull_request:
   workflow_dispatch:
 
 concurrency:
-  group: ci-${{ github.ref }}
+  # a newer push to the same pull request cancels the check still running for the older one
+  group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -34,8 +34,8 @@ jobs:
       R2_PUBLIC_HOSTNAME: media.example.com
       NEXT_TELEMETRY_DISABLED: '1'
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 20
           cache: npm
@@ -107,4 +107,6 @@ jobs:
           curl -s http://localhost:3000/blog/stockpro-inventory-management-system | grep -q 'class="article-html"' || { echo "::error title=Smoke::article page does not render the saved HTML"; fail=1; }
           # the RSS feed must come from the database (seeded articles)
           curl -s http://localhost:3000/blog/feed.xml | grep -q 'StockPro' || { echo "::error title=Smoke::RSS feed lacks the seeded articles"; fail=1; }
+          # the built site must read the database itself, never fall back to the starter content
+          if grep -qE 'could not be loaded|ENOENT' /tmp/server.txt; then grep -m3 -A4 -E 'could not be loaded|ENOENT' /tmp/server.txt | sed 's/^/::error title=Database::/'; fail=1; fi
           if [ $fail = 1 ]; then tail -30 /tmp/server.txt | sed 's/^/::error title=Server log::/'; exit 1; fi

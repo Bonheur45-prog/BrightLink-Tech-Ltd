@@ -4,7 +4,9 @@ import Image from 'next/image'
 import { Fragment, useCallback, useEffect, useRef, useState } from 'react'
 import type { CSSProperties, KeyboardEvent, ReactNode, TouchEvent } from 'react'
 
+import { useUi } from '@/components/i18n/useUi'
 import { SmartLink } from '@/components/ui/SmartLink'
+import { fill } from '@/i18n/ui'
 import { ArrowRightIcon, ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/ui/Icons'
 import type { HeroData, HeroSlide } from '@/lib/content/types'
 
@@ -190,6 +192,7 @@ function SlideMedia({
 type Props = { hero: HeroData; hasHighlights: boolean; /** h1 when the hero opens the page (default) */ firstHeading?: 'h1' | 'h2' }
 
 export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) {
+  const t = useUi()
   const { slides } = hero
   const count = slides.length
   const multiple = count > 1
@@ -256,7 +259,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
   return (
     <section
       aria-roledescription="carousel"
-      aria-label="Featured highlights"
+      aria-label={t.featuredHighlights}
       className={`relative isolate flex flex-col justify-center overflow-hidden bg-brand-navy-deep text-white ${HEIGHT_CLASS[hero.height]}`}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -298,7 +301,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
               key={slide.id}
               role="group"
               aria-roledescription="slide"
-              aria-label={`${i + 1} of ${count}`}
+              aria-label={fill(t.slideOf, { n: String(i + 1), count: String(count) })}
               inert={!isActive}
               className={`col-start-1 row-start-1 flex flex-col justify-center transition-opacity duration-500 ${
                 centered ? 'items-center text-center' : 'items-start text-left'
@@ -361,13 +364,13 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
                 {String(count).padStart(2, '0')}
               </p>
               {hero.showDots && (
-                <ul className="flex items-center gap-2" aria-label="Choose slide">
+                <ul className="flex items-center gap-2" aria-label={t.chooseSlide}>
                   {slides.map((slide, i) => (
                     <li key={slide.id}>
                       <button
                         type="button"
                         onClick={() => goTo(i)}
-                        aria-label={`Go to slide ${i + 1}: ${slide.heading}`}
+                        aria-label={fill(t.goToSlide, { n: String(i + 1), name: slide.heading })}
                         aria-current={i === safeActive ? 'true' : undefined}
                         className="group grid h-6 place-items-center px-0.5"
                       >
@@ -388,7 +391,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
                 <button
                   type="button"
                   onClick={() => setUserPaused((p) => !p)}
-                  aria-label={userPaused ? 'Play slideshow' : 'Pause slideshow'}
+                  aria-label={userPaused ? t.playSlideshow : t.pauseSlideshow}
                   className={glassBtn}
                 >
                   {userPaused ? <PlayIcon width={16} height={16} /> : <PauseIcon width={18} height={18} />}
@@ -396,10 +399,10 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
               )}
               {hero.showArrows && (
                 <>
-                  <button type="button" onClick={prev} aria-label="Previous slide" className={glassBtn}>
+                  <button type="button" onClick={prev} aria-label={t.previousSlide} className={glassBtn}>
                     <ChevronLeftIcon width={22} height={22} />
                   </button>
-                  <button type="button" onClick={next} aria-label="Next slide" className={glassBtn}>
+                  <button type="button" onClick={next} aria-label={t.nextSlide} className={glassBtn}>
                     <ChevronRightIcon width={22} height={22} />
                   </button>
                 </>
