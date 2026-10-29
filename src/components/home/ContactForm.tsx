@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { submitContact, type FormState } from '@/lib/actions'
 import { CheckIcon, SendIcon } from '@/components/ui/Icons'
+import { TurnstileField } from './TurnstileField'
 
 const initial: FormState = { status: 'idle', message: '' }
 
@@ -12,12 +13,18 @@ const inputClass =
 export function ContactForm({
   services,
   source = 'Home page — Get in touch',
+  turnstileSiteKey = null,
+  fallbackEmail,
 }: {
   services: string[]
   source?: string
+  /** Cloudflare Turnstile site key (null = spam check off) */
+  turnstileSiteKey?: string | null
+  fallbackEmail?: string
 }) {
   const [state, action, pending] = useActionState(submitContact, initial)
   const err = state.fieldErrors ?? {}
+  const v = state.values ?? {}
 
   if (state.status === 'success') {
     return (
@@ -39,14 +46,14 @@ export function ContactForm({
           <label htmlFor="cf-name" className="text-sm font-semibold text-brand-navy-deep">
             Your name
           </label>
-          <input id="cf-name" name="name" required autoComplete="name" className={inputClass} aria-invalid={Boolean(err.name)} aria-describedby={err.name ? 'cf-name-err' : undefined} />
+          <input id="cf-name" name="name" defaultValue={v.name} required autoComplete="name" className={inputClass} aria-invalid={Boolean(err.name)} aria-describedby={err.name ? 'cf-name-err' : undefined} />
           {err.name && <p id="cf-name-err" className="mt-1 text-sm text-red-600">{err.name}</p>}
         </div>
         <div>
           <label htmlFor="cf-email" className="text-sm font-semibold text-brand-navy-deep">
             Email
           </label>
-          <input id="cf-email" name="email" type="email" required autoComplete="email" className={inputClass} aria-invalid={Boolean(err.email)} aria-describedby={err.email ? 'cf-email-err' : undefined} />
+          <input id="cf-email" name="email" type="email" defaultValue={v.email} required autoComplete="email" className={inputClass} aria-invalid={Boolean(err.email)} aria-describedby={err.email ? 'cf-email-err' : undefined} />
           {err.email && <p id="cf-email-err" className="mt-1 text-sm text-red-600">{err.email}</p>}
         </div>
       </div>
@@ -55,13 +62,14 @@ export function ContactForm({
           <label htmlFor="cf-phone" className="text-sm font-semibold text-brand-navy-deep">
             Phone <span className="font-normal text-slate-500">(optional)</span>
           </label>
-          <input id="cf-phone" name="phone" type="tel" autoComplete="tel" className={inputClass} />
+          <input id="cf-phone" name="phone" type="tel" defaultValue={v.phone} autoComplete="tel" className={inputClass} />
         </div>
         <div>
           <label htmlFor="cf-service" className="text-sm font-semibold text-brand-navy-deep">
             I’m interested in
           </label>
-          <select id="cf-service" name="service" defaultValue="" className={inputClass}>
+          {/* key: a <select> only takes its default when it is first drawn, so it is redrawn with the visitor's choice after an error */}
+          <select key={v.service ?? ''} id="cf-service" name="service" defaultValue={v.service ?? ''} className={inputClass}>
             <option value="">Select a service</option>
             {services.map((s) => (
               <option key={s} value={s}>
@@ -76,12 +84,13 @@ export function ContactForm({
         <label htmlFor="cf-message" className="text-sm font-semibold text-brand-navy-deep">
           How can we help?
         </label>
-        <textarea id="cf-message" name="message" rows={5} required className={`${inputClass} py-3`} aria-invalid={Boolean(err.message)} aria-describedby={err.message ? 'cf-message-err' : undefined} />
+        <textarea id="cf-message" name="message" rows={5} defaultValue={v.message} required className={`${inputClass} py-3`} aria-invalid={Boolean(err.message)} aria-describedby={err.message ? 'cf-message-err' : undefined} />
         {err.message && <p id="cf-message-err" className="mt-1 text-sm text-red-600">{err.message}</p>}
       </div>
       {/* honeypot */}
       <input type="text" name="company_website" tabIndex={-1} autoComplete="off" aria-hidden className="hidden" />
 
+      {turnstileSiteKey && <TurnstileField siteKey={turnstileSiteKey} resetKey={state.status === 'error' ? state : null} fallbackEmail={fallbackEmail} />}
       {state.status === 'error' && !state.fieldErrors && (
         <p role="alert" className="rounded-xl bg-red-50 p-3 text-sm text-red-700">
           {state.message}

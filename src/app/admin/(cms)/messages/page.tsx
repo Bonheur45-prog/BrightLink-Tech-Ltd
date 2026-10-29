@@ -57,6 +57,7 @@ export default async function MessagesPage({ searchParams }: { searchParams: Sea
                 <span className={styles.sub}>
                   {when.format(r.createdAt)} · {r.service || r.source} · {r.message.slice(0, 90)}
                   {r.message.length > 90 ? '…' : ''}
+                  {r.notifyError && <> · <strong title={r.notifyError}>not emailed</strong></>}
                 </span>
               </Link>
               <StatusBadge status={r.status} />

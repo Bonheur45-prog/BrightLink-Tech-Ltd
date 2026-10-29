@@ -29,3 +29,23 @@ release and reloads PM2. Oak Elite Home uses port 3020; BrightLink uses **3021**
 - API token with Object Read & Write on that bucket → `R2_ACCOUNT_ID`, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET`.
 - **CORS rule (needed for video uploads, which go from the browser straight to R2):** allow origin = your site
   address, methods `PUT` and `GET`, headers `*`.
+
+## Email: contact messages sent to you
+Every message from the contact form is saved first (it is always in **CMS → Messages**), then emailed to the
+**Notification email** in Site settings (or the public email if that is empty). The result is shown on each message:
+"Emailed to the team: Yes, <time>", or a yellow note saying why it was not emailed (email not set up, wrong password,
+server unreachable). Visitors are only told "sent" once the message is saved.
+
+Add to the VPS `.env` (any SMTP server works):
+- Gmail: `SMTP_HOST=smtp.gmail.com`, `SMTP_PORT=465`, `SMTP_USER=<the Gmail address>`,
+  `SMTP_PASS=<a 16-character App Password>` (Google Account → Security → 2-Step Verification → App passwords),
+  `EMAIL_FROM="BrightLink website <the same Gmail address>"`.
+- Port 465 uses TLS; port 587 uses STARTTLS.
+After changing `.env`: `pm2 restart brightlink --update-env`. Send yourself a test message from the site.
+
+## Spam protection: Cloudflare Turnstile
+Cloudflare dashboard → Turnstile → Add widget (domains: your domain and `localhost`), then add `TURNSTILE_SITE_KEY`
+and `TURNSTILE_SECRET_KEY` to the VPS `.env` and restart. The contact form then shows a small "I am human" check and the
+server refuses messages without a valid one. If Cloudflare itself cannot be reached, messages are let through (the limit
+of 5 messages per visitor per 10 minutes still applies) so a real enquiry is never lost. Without the keys the check is off.
+If a visitor's browser blocks the check, the form tells them to email you instead.

@@ -5,6 +5,7 @@ import { ArrowUpRightIcon, ClockIcon, MailIcon, MapPinIcon, PhoneIcon, SOCIAL_LA
 import { Reveal } from '@/components/ui/Reveal'
 import { SectionHeading } from '@/components/ui/SectionHeading'
 import { getServices } from '@/lib/content'
+import { turnstileSiteKey } from '@/lib/security/turnstile'
 import { SectionShell, bool, strong, text, type SectionProps, type Tone } from './shared'
 
 const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, '')}`
@@ -28,7 +29,8 @@ export async function ContactSection({ section, ctx }: SectionProps) {
   const heading = text(d.heading, locale)
   const formTitle = text(d.formTitle, locale)
   const id = `${ctx.anchor}-heading`
-  const source = `${ctx.page.key === 'home' ? 'Home' : ctx.page.key} page — contact form`
+  const pageName = ctx.page.key.startsWith('service-') ? `Service (${ctx.page.crumbs.at(-1)?.label ?? ''})` : ctx.page.key.charAt(0).toUpperCase() + ctx.page.key.slice(1)
+  const source = `${pageName} page — contact form`
   const whatsapp = settings.socials.find((s) => s.platform === 'whatsapp')?.url
 
   const detailList = (tone: Tone, grid = false) => (
@@ -61,7 +63,7 @@ export async function ContactSection({ section, ctx }: SectionProps) {
     <div className="rounded-3xl bg-white p-7 text-slate-700 shadow-2xl shadow-black/20 sm:p-10">
       {formTitle && <h3 className="font-display text-2xl font-semibold text-brand-navy-deep">{formTitle}</h3>}
       <p className={`${formTitle ? 'mt-1.5' : ''} mb-7 text-slate-600`}>{t.replyTime}</p>
-      <ContactForm services={services.map((s) => s.title)} source={source} />
+      <ContactForm services={services.map((s) => s.title)} source={source} turnstileSiteKey={turnstileSiteKey()} fallbackEmail={settings.email} />
     </div>
   )
 
@@ -110,7 +112,7 @@ export async function ContactSection({ section, ctx }: SectionProps) {
                     <p className="mt-2 max-w-xl leading-relaxed text-white/75">{t.replyTime}</p>
                   </div>
                   <div className="rounded-2xl bg-white p-5 sm:p-7">
-                    <ContactForm services={services.map((s) => s.title)} source={source} />
+                    <ContactForm services={services.map((s) => s.title)} source={source} turnstileSiteKey={turnstileSiteKey()} fallbackEmail={settings.email} />
                   </div>
                 </div>
               )}

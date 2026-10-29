@@ -16,7 +16,7 @@ function NewsletterCard({ section, ctx }: { section: Section; ctx: SectionCtx })
     <div className="rounded-3xl border border-white/20 bg-white/10 p-7 shadow-2xl backdrop-blur-md sm:p-9">
       <h3 className="font-display text-2xl font-semibold !text-white">{text(d.heading, ctx.locale)}</h3>
       {text(d.text, ctx.locale) && <p className="mb-6 mt-2 text-white/75">{text(d.text, ctx.locale)}</p>}
-      <NewsletterForm buttonLabel={text(d.buttonLabel, ctx.locale) || 'Subscribe'} source={`${ctx.page.key} page — newsletter`} />
+      <NewsletterForm buttonLabel={text(d.buttonLabel, ctx.locale) || 'Subscribe'} source={`${ctx.page.key.charAt(0).toUpperCase() + ctx.page.key.slice(1)} page — newsletter`} />
     </div>
   )
 }
@@ -154,7 +154,7 @@ export function NewsletterSection({ section, ctx }: SectionProps) {
             </h2>
             {text(d.text, locale) && <p className="mt-3 max-w-xl leading-relaxed text-white/75">{text(d.text, locale)}</p>}
           </div>
-          <NewsletterForm buttonLabel={text(d.buttonLabel, locale) || 'Subscribe'} source={`${ctx.page.key} page — newsletter`} />
+          <NewsletterForm buttonLabel={text(d.buttonLabel, locale) || 'Subscribe'} source={`${ctx.page.key.charAt(0).toUpperCase() + ctx.page.key.slice(1)} page — newsletter`} />
         </div>
       )}
     </SectionShell>
