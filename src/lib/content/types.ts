@@ -37,6 +37,8 @@ export type SiteSettingsData = {
     defaultDescription: string
     defaultOgImage: MediaRef | null
     googleSiteVerification: string
+    /** Google Analytics 4 measurement ID ("G-…"), or empty for none. */
+    googleAnalyticsId: string
   }
   /** Keys from src/lib/fonts.ts */
   headingFont: string

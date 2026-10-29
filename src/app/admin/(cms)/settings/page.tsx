@@ -53,6 +53,7 @@ export default async function SettingsPage() {
     defaultOg: picked(row?.defaultOgMediaId),
     titleTemplate: row?.titleTemplate ?? d.seo.titleTemplate,
     googleSiteVerification: row?.googleSiteVerification ?? '',
+    googleAnalyticsId: row?.googleAnalyticsId ?? '',
     enabledLocales: (row?.enabledLocales ?? ['en']) as Locale[],
     headingFont: isFontKey(row?.headingFont) ? row!.headingFont : DEFAULT_HEADING_FONT,
     bodyFont: isFontKey(row?.bodyFont) ? row!.bodyFont : DEFAULT_BODY_FONT,

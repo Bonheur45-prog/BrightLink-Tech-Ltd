@@ -4,6 +4,7 @@ import type { CSSProperties, ReactNode } from 'react'
 
 import '@/styles/globals.css'
 import { Footer } from '@/components/layout/Footer'
+import { GoogleAnalytics } from '@/components/layout/GoogleAnalytics'
 import { Header } from '@/components/layout/Header'
 import { LocaleProvider } from '@/components/i18n/LocaleProvider'
 import { ogLocale } from '@/i18n/config'
@@ -71,6 +72,7 @@ export default async function FrontendLayout({ children }: { children: ReactNode
         <main id="main">{children}</main>
         <Footer />
         </LocaleProvider>
+        <GoogleAnalytics id={settings.seo.googleAnalyticsId} />
       </body>
     </html>
   )

@@ -101,6 +101,8 @@ model SiteSettings {
   defaultOgMediaId       String? // social-share image used when a page has none
   titleTemplate          String   @default("%s | BrightLink Technologies")
   googleSiteVerification String   @default("")
+  /// Google Analytics 4 measurement ID ("G-…"); empty = no analytics on the site.
+  googleAnalyticsId      String   @default("")
   defaultLocale          Locale   @default(en)
   /// Languages switched on for visitors. English is always on.
   enabledLocales         Locale[] @default([en])

@@ -11,7 +11,7 @@ import {
   resolveFooter,
   resolveHeader,
 } from './globals-model';
-import { validateSettings, verificationCode, type Input } from './settings-validation';
+import { analyticsId, validateSettings, verificationCode, type Input } from './settings-validation';
 
 const input = (values: Record<string, string | string[]>): Input => ({
   get: (n) => (Array.isArray(values[n]) ? (values[n] as string[])[0] : (values[n] as string)) ?? '',
@@ -93,4 +93,16 @@ test('header: problems for missing label and bad link; dropdown parent may have 
   const p = headerProblems(h);
   assert.ok(p['nav.0.label'] && p['nav.0.url'] && p['cta.label'] && p['cta.url']);
   assert.equal(p['nav.1.url'], undefined);
+});
+
+test('settings: Google Analytics ID is taken from the ID or the whole tag; anything else is refused', () => {
+  assert.equal(analyticsId(' g-ab12cd34ef '), 'G-AB12CD34EF');
+  assert.equal(analyticsId('<script async src="https://www.googletagmanager.com/gtag/js?id=G-AB12CD34EF"></script>'), 'G-AB12CD34EF');
+  assert.equal(analyticsId(''), '');
+  const ok = validateSettings(input({ ...valid, googleAnalyticsId: 'G-AB12CD34EF' }));
+  assert.ok(ok.ok && ok.data.googleAnalyticsId === 'G-AB12CD34EF');
+  const empty = validateSettings(input({ ...valid, googleAnalyticsId: '' }));
+  assert.ok(empty.ok && empty.data.googleAnalyticsId === '');
+  const bad = validateSettings(input({ ...valid, googleAnalyticsId: 'UA-12345-1' }));
+  assert.ok(!bad.ok && 'googleAnalyticsId' in bad.errors);
 });
