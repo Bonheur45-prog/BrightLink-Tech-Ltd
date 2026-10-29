@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 import type { LivePage } from '@/lib/content/live-pages'
 import { BannerSection } from './BannerSection'
@@ -64,9 +64,11 @@ export function PageSections({ page, ctx, title }: { page: LivePage; ctx: Omit<P
       {/* every page needs exactly one H1; without a hero or banner first, it is the page title */}
       {!startsWithTitle(page.doc.sections) && <h1 className="sr-only">{title}</h1>}
       {plans.map((plan) => (
-        <div key={plan.section.id} className="contents">
+        // A Fragment, not a wrapper element: Next.js scrolls a new page to its first visible element, and a
+        // display:contents wrapper has no box, so the page used to open at the previous page's scroll position.
+        <Fragment key={plan.section.id}>
           {render(plan, { ...base, anchor: plan.anchor, first: plan.first, afterHero: plan.afterHero })}
-        </div>
+        </Fragment>
       ))}
     </>
   )

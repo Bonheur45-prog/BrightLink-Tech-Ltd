@@ -126,7 +126,7 @@ export default async function BlogPostPage({ params }: Props) {
             <CategoryChip post={post} />
           </div>
           <h1 className="hero-reveal mt-5 font-display text-[clamp(2rem,3.4vw+1rem,3.5rem)] font-bold leading-[1.1] tracking-tight text-brand-navy-deep">{post.title}</h1>
-          <p className="hero-reveal mt-5 text-xl leading-relaxed text-slate-600 [animation-delay:120ms]">{post.excerpt}</p>
+          <p className="hero-reveal mt-5 text-lg leading-relaxed text-slate-600 sm:text-xl [animation-delay:120ms]">{post.excerpt}</p>
           <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
             <div className="flex items-center gap-3">
               {post.author.photo ? (
