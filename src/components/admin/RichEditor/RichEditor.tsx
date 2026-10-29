@@ -180,7 +180,9 @@ export default function RichEditor({ initial, onChange, label }: { initial: JSON
     ],
     content: initial,
     editorProps: { attributes: { class: styles.content, 'aria-label': label, role: 'textbox', 'aria-multiline': 'true' } },
-    onUpdate: ({ editor: e }) => onChange(e.getJSON()),
+    // ProseMirror builds node attributes with Object.create(null). A server action cannot receive such objects
+    // as data (React sends them as placeholders and the server crashes reading them), so hand over plain JSON.
+    onUpdate: ({ editor: e }) => onChange(JSON.parse(JSON.stringify(e.getJSON())) as JSONContent),
   });
   if (!editor) return <div className={styles.loading}>Loading the editor…</div>;
   return (

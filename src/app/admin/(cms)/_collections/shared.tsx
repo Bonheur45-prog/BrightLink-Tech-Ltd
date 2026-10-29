@@ -63,7 +63,7 @@ export async function CollectionList({ kind, title, description, createLabel, ro
           {rows.map((r) => (
             <li key={r.id} className={styles.row}>
               {r.thumb !== undefined && <MediaThumb media={r.thumb ? { kind: r.thumb.kind ?? 'IMAGE', thumbUrl: r.thumb.thumbUrl, durationSec: null } : null} size={56} />}
-              <Link href={`/admin/${kind}/${r.id}`} className={styles.title}>
+              <Link href={`${listPath(kind)}/${r.id}`} className={styles.title}>
                 {r.title}
                 {r.sub && <span className={styles.sub}>{r.sub}</span>}
               </Link>
@@ -76,6 +76,9 @@ export async function CollectionList({ kind, title, description, createLabel, ro
   );
 }
 
+/** Address of a collection's list in the CMS (articles live under /admin/blog). */
+const listPath = (kind: Kind) => `/admin/${kind === 'posts' ? 'blog' : kind}`;
+
 /** Header of an editor: back link, title, trash button. */
 export async function EditorHeader({ kind, id, title, back, searchParams, viewHref }: { kind: Kind; id: string; title: string; back: string; searchParams: Search; viewHref?: string }) {
   const { notice, error } = noticeFrom(await searchParams);
@@ -83,7 +86,7 @@ export async function EditorHeader({ kind, id, title, back, searchParams, viewHr
     <>
       <PageHeader
         title={title}
-        back={{ href: `/admin/${kind}`, label: back }}
+        back={{ href: listPath(kind), label: back }}
         actions={
           <>
             {viewHref && <Button href={viewHref} newTab>View on website ↗</Button>}
