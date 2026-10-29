@@ -4,9 +4,8 @@ import type { Locale } from '@/i18n/config'
 import { prisma } from '@/lib/db'
 import { photoUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
-import { safeHref } from '@/lib/blog/render'
 import { normalizeBlogCategory, normalizeBlogPost } from './normalize'
-import type { BlogCategory, BlogPost, BlogPostFull } from './types'
+import type { BlogArticle, BlogCategory, BlogPost, TocItem } from './types'
 
 type MediaRow = {
   id: string
@@ -17,9 +16,6 @@ type MediaRow = {
   variants: unknown
   translations: { locale: string; alt: string }[]
 }
-type Node = { type?: string; text?: string; attrs?: Record<string, unknown>; marks?: { type?: string; attrs?: Record<string, unknown> }[]; content?: Node[] }
-type Obj = Record<string, unknown>
-const obj = (v: unknown): Obj => v && typeof v === 'object' && !Array.isArray(v) ? v as Obj : {}
 const translation = <T extends { locale: string }>(rows: T[], locale: Locale): T | undefined =>
   rows.find((row) => row.locale === locale) ?? rows.find((row) => row.locale === 'en')
 
@@ -36,92 +32,6 @@ function mediaRef(row: MediaRow | null | undefined, locale: Locale) {
   } catch {
     return null
   }
-}
-
-function imageIds(doc: unknown): string[] {
-  const ids: string[] = []
-  const walk = (node: Node) => {
-    if (node.type === 'image' && typeof node.attrs?.mediaId === 'string') ids.push(node.attrs.mediaId)
-    ;(node.content ?? []).forEach(walk)
-  }
-  if (doc && typeof doc === 'object') walk(doc as Node)
-  return [...new Set(ids)]
-}
-
-function inlineNodes(nodes: Node[] = []): Obj[] {
-  return nodes.flatMap((node) => {
-    if (node.type !== 'text' || typeof node.text !== 'string') {
-      if (node.type === 'hardBreak') return [{ type: 'linebreak', text: '\n' }]
-      return (node.content ?? []).flatMap((child) => inlineNodes([child]))
-    }
-    let format = 0
-    let link: { url: string; newTab: boolean } | null = null
-    for (const mark of node.marks ?? []) {
-      if (mark.type === 'bold') format |= 1
-      else if (mark.type === 'italic') format |= 2
-      else if (mark.type === 'code') format |= 16
-      else if (mark.type === 'link') {
-        const href = safeHref(mark.attrs?.href)
-        if (href) link = { url: href, newTab: mark.attrs?.target === '_blank' || /^https?:/i.test(href) }
-      }
-    }
-    const textNode: Obj = { type: 'text', text: node.text, format }
-    return link ? [{ type: 'link', fields: { url: link.url, newTab: link.newTab }, children: [textNode] }] : [textNode]
-  })
-}
-
-function tiptapToLexical(doc: unknown, assets: Record<string, MediaRow>): unknown {
-  const convert = (node: Node): Obj[] => {
-    const children = (node.content ?? []).flatMap(convert)
-    const plainText = (part: Node): string => part.type === 'text' ? part.text ?? '' : (part.content ?? []).map(plainText).join(' ')
-    switch (node.type) {
-      case 'text':
-        return inlineNodes([node])
-      case 'paragraph':
-        return [{ type: 'paragraph', children }]
-      case 'heading': {
-        const level = Number(node.attrs?.level) || 2
-        return [{ type: 'heading', tag: level >= 3 ? 'h3' : 'h2', children }]
-      }
-      case 'bulletList':
-      case 'orderedList':
-        return [{ type: 'list', listType: node.type === 'orderedList' ? 'number' : 'bullet', children }]
-      case 'listItem':
-        return [{ type: 'listitem', children }]
-      case 'blockquote':
-      case 'callout':
-        return [{ type: 'quote', children }]
-      case 'horizontalRule':
-        return [{ type: 'horizontalrule' }]
-      case 'image': {
-        const id = typeof node.attrs?.mediaId === 'string' ? node.attrs.mediaId : ''
-        const media = assets[id]
-        if (!media) return []
-        const alt = typeof node.attrs?.alt === 'string' && node.attrs.alt.trim() ? node.attrs.alt : media.translations.find((t) => t.locale === 'en')?.alt ?? ''
-        const caption = typeof node.attrs?.title === 'string' ? node.attrs.title : ''
-        return [{ type: 'upload', value: { url: photoUrl(media), alt, caption, mimeType: media.mimeType } }]
-      }
-      case 'table':
-      case 'tableRow': {
-        const text = plainText(node).trim()
-        return text ? [{ type: 'paragraph', children: [{ type: 'text', text, format: 0 }] }] : []
-      }
-      case 'tableCell':
-      case 'tableHeader':
-        return children
-      case 'codeBlock': {
-        const text = (node.content ?? []).map((child) => child.text ?? '').join('')
-        return text ? [{ type: 'paragraph', children: [{ type: 'text', text, format: 16 }] }] : []
-      }
-      case 'doc':
-        return children
-      default:
-        return children
-    }
-  }
-  const root = obj(doc)
-  const content = Array.isArray(root.content) ? root.content as Node[] : []
-  return { root: { type: 'root', children: content.flatMap(convert) } }
 }
 
 const publishedWhere = (now: Date) => ({
@@ -223,8 +133,14 @@ export const loadPublicCategories = cachedPublic('public-blog-categories', async
   })
 })
 
-export async function loadPublicPostBySlug(slug: string, locale: Locale): Promise<{ state: 'found'; post: BlogPostFull } | { state: 'empty' | 'missing' }> {
-  const result = await cachedPublic('public-blog-post', async (postSlug: string, requestLocale: Locale) => {
+const tocOf = (v: unknown): TocItem[] =>
+  (Array.isArray(v) ? v : [])
+    .filter((x): x is { id: string; text: string; level?: number } => !!x && typeof x === 'object' && typeof (x as TocItem).id === 'string' && typeof (x as TocItem).text === 'string')
+    .map((x) => ({ id: x.id, text: x.text, level: x.level === 3 ? 3 : 2 }))
+
+/** One published article with its saved HTML, in the visitor's language (English when not translated). */
+export async function loadPublicPostBySlug(slug: string, locale: Locale): Promise<{ state: 'found'; post: BlogArticle } | { state: 'empty' | 'missing' }> {
+  return cachedPublic('public-blog-article', async (postSlug: string, requestLocale: Locale) => {
     const now = new Date()
     const row = await prisma.post.findFirst({
       where: { ...publishedWhere(now), slug: postSlug },
@@ -242,12 +158,11 @@ export async function loadPublicPostBySlug(slug: string, locale: Locale): Promis
     const t = translation(row.translations, requestLocale)
     const categoryT = translation(row.category.translations, requestLocale)
     if (!t || !categoryT) return { state: 'missing' as const }
-    const doc = t.doc
-    const ids = imageIds(doc)
-    const assets = (ids.length ? await prisma.mediaAsset.findMany({ where: { id: { in: ids }, deletedAt: null }, include: { translations: true } }) : [])
-      .reduce<Record<string, MediaRow>>((out, media) => { out[media.id] = media; return out }, {})
+    // the body in the visitor's language, or the English one when that language has no text yet
+    const body = t.html ? t : (row.translations.find((x) => x.locale === 'en') ?? t)
     const authorT = row.author ? translation(row.author.translations, requestLocale) : undefined
-    const raw = {
+    const ogMedia = t.ogMediaId ? await prisma.mediaAsset.findFirst({ where: { id: t.ogMediaId, deletedAt: null }, include: { translations: true } }) : null
+    const post = normalizeBlogPost({
       id: row.id,
       slug: row.slug,
       title: t.title,
@@ -270,15 +185,12 @@ export async function loadPublicPostBySlug(slug: string, locale: Locale): Promis
       seo: {
         metaTitle: t.metaTitle,
         metaDescription: t.metaDescription,
-        ogImage: t.ogMediaId ? mediaRef(await prisma.mediaAsset.findFirst({ where: { id: t.ogMediaId, deletedAt: null }, include: { translations: true } }), requestLocale) : null,
+        ogImage: mediaRef(ogMedia, requestLocale),
         focusKeyword: row.focusKeyword,
         canonicalUrl: row.canonicalUrl,
         noIndex: row.noIndex,
       },
-      content: tiptapToLexical(doc, assets),
-    }
-    const post = normalizeBlogPost(raw, true)
-    return post ? { state: 'found' as const, post } : { state: 'missing' as const }
+    })
+    return post ? { state: 'found' as const, post: { ...post, html: body.html, toc: tocOf(body.toc) } } : { state: 'missing' as const }
   })(slug, locale)
-  return result
 }

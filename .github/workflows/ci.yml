@@ -103,6 +103,8 @@ jobs:
           curl -s http://localhost:3000/sitemap.xml | grep -q '<loc>https://www.brightlink.test/about-us' || { echo "::error title=Smoke::sitemap does not use SITE_URL"; fail=1; }
           curl -s http://localhost:3000/robots.txt | grep -q 'Sitemap: https://www.brightlink.test/sitemap.xml' || { echo "::error title=Smoke::robots.txt does not use SITE_URL"; fail=1; }
           curl -s http://localhost:3000/about-us | grep -q 'rel="canonical" href="https://www.brightlink.test/about-us"' || { echo "::error title=Smoke::canonical does not use SITE_URL"; fail=1; }
+          # articles show the safe HTML saved by the editor (tables, note boxes, code… are not converted away)
+          curl -s http://localhost:3000/blog/stockpro-inventory-management-system | grep -q 'class="article-html"' || { echo "::error title=Smoke::article page does not render the saved HTML"; fail=1; }
           # the RSS feed must come from the database (seeded articles)
           curl -s http://localhost:3000/blog/feed.xml | grep -q 'StockPro' || { echo "::error title=Smoke::RSS feed lacks the seeded articles"; fail=1; }
           if [ $fail = 1 ]; then tail -30 /tmp/server.txt | sed 's/^/::error title=Server log::/'; exit 1; fi

@@ -175,3 +175,130 @@
     display: none;
   }
 }
+
+/* Article bodies: the safe HTML saved by the blog editor (src/components/blog/ArticleHtml.tsx).
+   Same look as the original article layout, plus tables, note boxes, code and alignment. */
+@layer components {
+  .article-html {
+    @apply text-[1.0625rem] leading-[1.8] text-slate-700 sm:text-lg;
+  }
+  .article-html > :first-child {
+    @apply mt-0;
+  }
+  .article-html > p:first-child {
+    @apply text-xl leading-relaxed text-slate-800 sm:text-[1.35rem];
+  }
+  .article-html p {
+    @apply mt-5;
+  }
+  .article-html h2 {
+    @apply mt-12 scroll-mt-28 font-display text-2xl font-bold leading-snug text-brand-navy-deep sm:text-[1.75rem];
+  }
+  .article-html h2::before {
+    content: '';
+    @apply mb-3 block h-1 w-10 rounded-full bg-brand-link;
+  }
+  .article-html h3 {
+    @apply mt-9 scroll-mt-28 font-display text-xl font-semibold text-brand-navy-deep;
+  }
+  .article-html h4 {
+    @apply mt-7 font-display text-lg font-semibold text-brand-navy-deep;
+  }
+  .article-html a {
+    @apply font-medium text-brand-blue underline decoration-brand-blue/30 underline-offset-4 transition hover:decoration-brand-blue;
+  }
+  .article-html strong {
+    @apply font-semibold text-slate-900;
+  }
+  .article-html ul,
+  .article-html ol {
+    @apply mt-5 space-y-2.5;
+  }
+  .article-html ul > li {
+    @apply relative pl-6;
+  }
+  .article-html ul > li::before {
+    content: '';
+    @apply absolute left-0 top-[0.72em] size-2 rounded-full bg-brand-link;
+  }
+  .article-html ol {
+    counter-reset: article-ol;
+  }
+  .article-html ol > li {
+    counter-increment: article-ol;
+    @apply relative pl-10;
+  }
+  .article-html ol > li::before {
+    content: counter(article-ol);
+    @apply absolute left-0 top-0.5 grid size-7 place-items-center rounded-full bg-brand-warm text-sm font-bold text-brand-navy-deep;
+  }
+  .article-html li > p {
+    @apply mt-0;
+  }
+  .article-html li > ul,
+  .article-html li > ol {
+    @apply mt-2.5;
+  }
+  .article-html blockquote {
+    @apply my-8 rounded-2xl border-l-4 border-brand-orange bg-slate-50 py-5 pl-6 pr-5 font-display text-xl italic text-brand-navy-deep;
+  }
+  .article-html blockquote > p:first-child {
+    @apply mt-0;
+  }
+  .article-html code {
+    @apply rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[0.9em] text-brand-navy-deep;
+  }
+  .article-html pre {
+    @apply my-8 overflow-x-auto rounded-2xl bg-brand-navy-deep p-5 text-sm leading-relaxed text-white;
+  }
+  .article-html pre code {
+    @apply bg-transparent p-0 text-inherit;
+  }
+  .article-html .callout {
+    @apply my-8 rounded-2xl border-l-4 p-5;
+  }
+  .article-html .callout > :first-child {
+    @apply mt-0;
+  }
+  .article-html .callout-info {
+    @apply border-brand-blue bg-sky-50 text-slate-800;
+  }
+  .article-html .callout-tip {
+    @apply border-emerald-500 bg-emerald-50 text-slate-800;
+  }
+  .article-html .callout-warning {
+    @apply border-amber-500 bg-amber-50 text-slate-800;
+  }
+  .article-html figure {
+    @apply my-9;
+  }
+  .article-html figure img {
+    @apply h-auto w-full rounded-2xl bg-slate-100;
+  }
+  .article-html figcaption {
+    @apply mt-2 text-center text-sm text-slate-500;
+  }
+  .article-html hr {
+    @apply my-10 border-slate-200;
+  }
+  .article-html .table-wrap {
+    @apply my-8 overflow-x-auto rounded-2xl ring-1 ring-slate-200;
+  }
+  .article-html table {
+    @apply w-full border-collapse text-base;
+  }
+  .article-html th,
+  .article-html td {
+    @apply border border-slate-200 px-4 py-2.5 text-left align-top;
+  }
+  .article-html th {
+    @apply bg-slate-50 font-semibold text-brand-navy-deep;
+  }
+  .article-html td > p,
+  .article-html th > p {
+    @apply mt-0;
+  }
+  .article-html mark {
+    @apply rounded px-0.5 text-inherit;
+  }
+}

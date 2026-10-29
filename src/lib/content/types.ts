@@ -377,6 +377,15 @@ export type BlogPost = {
 
 export type BlogPostFull = BlogPost & { blocks: Block[] }
 
+/** One heading in an article's table of contents. */
+export type TocItem = { id: string; text: string; level: 2 | 3 }
+
+/**
+ * An article as the public site shows it: the safe HTML rendered when it was saved in the CMS
+ * (src/lib/blog/render.ts: only allowed tags, attributes, colours, fonts and library photos).
+ */
+export type BlogArticle = BlogPost & { html: string; toc: TocItem[] }
+
 export type BlogPageData = {
   banner: { eyebrow: string; heading: string; intro: string; image: MediaRef | null }
   postsPerPage: number

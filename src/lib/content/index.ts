@@ -8,11 +8,13 @@ import { normalizeClient, normalizeProject, normalizeProjectDetail, normalizeSer
 import { prisma } from '@/lib/db'
 import { photoUrl } from '@/lib/media'
 import { cachedPublic } from '@/lib/public-cache'
+import { blocksToDoc, renderDoc } from '@/lib/blog/render'
 import { loadBlogPage } from './public-pages'
 import { loadPublicCategories, loadPublicPostBySlug, loadPublicPosts } from './public-blog'
 import { DEFAULT_BLOG_PAGE, STARTER_CATEGORIES, STARTER_POSTS } from './blogDefaults'
 import { STARTER_CLIENTS, STARTER_PROJECTS, STARTER_PROJECTS_RAW as STARTER_RAW_PROJECTS, STARTER_SERVICES } from './defaults'
 import type {
+  BlogArticle,
   BlogCategory,
   BlogPageData,
   BlogPost,
@@ -309,7 +311,16 @@ export const getBlogCategories = cache(async (): Promise<BlogCategory[]> => {
     .filter((category) => category.count > 0)
 })
 
-export const getPostBySlug = cache(async (slug: string): Promise<BlogPostFull | null> => {
+/** Starter article (database unreachable or no articles yet) → the same safe HTML a saved article has. */
+function starterArticle(slug: string): BlogArticle | null {
+  const starter = STARTER_POSTS.find((post) => post.slug === slug)
+  if (!starter) return null
+  const { blocks, ...post } = starter
+  const rendered = renderDoc(blocksToDoc(blocks))
+  return { ...post, html: rendered.html, toc: rendered.toc.map((x) => ({ id: x.id, text: x.text, level: x.level })) }
+}
+
+export const getPostBySlug = cache(async (slug: string): Promise<BlogArticle | null> => {
   try {
     const result = await loadPublicPostBySlug(slug, await getRequestLocale())
     if (result.state === 'found') return result.post
@@ -317,5 +328,5 @@ export const getPostBySlug = cache(async (slug: string): Promise<BlogPostFull | 
   } catch (error) {
     console.error('[content] blog post could not be loaded; using starter content', error)
   }
-  return STARTER_POSTS.find((post) => post.slug === slug) ?? null
+  return starterArticle(slug)
 })
