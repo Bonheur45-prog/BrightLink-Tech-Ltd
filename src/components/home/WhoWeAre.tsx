@@ -77,8 +77,7 @@ export function WhoWeAre({ data }: { data: WhoWeAreData }) {
 
         {/* ------------------------------------------------ right: picture space */}
         <Reveal from="right" delay={200} className="relative mx-auto w-full max-w-xl lg:max-w-none">
-          <div aria-hidden className="absolute -bottom-5 -right-5 h-full w-full rounded-[2rem] bg-brand-link opacity-90 sm:-bottom-6 sm:-right-6" />
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-2xl shadow-brand-navy/20 sm:aspect-[5/5] lg:aspect-[4/5]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-xl shadow-slate-300/50 sm:aspect-[5/5] lg:aspect-[4/5]">
             {data.image ? (
               <Image
                 src={data.image.url}

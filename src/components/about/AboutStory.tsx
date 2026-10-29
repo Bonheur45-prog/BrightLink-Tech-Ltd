@@ -31,8 +31,7 @@ export function AboutStory({ data }: { data: AboutData['story'] }) {
       <div className="container-x relative grid items-center gap-14 lg:grid-cols-12 lg:gap-16">
         {/* pictures */}
         <Reveal from="left" className="relative mx-auto w-full max-w-xl pb-10 lg:col-span-6 lg:max-w-none lg:pb-12">
-          <div aria-hidden className="absolute -left-5 -top-5 h-full w-4/5 rounded-[2rem] bg-brand-link opacity-90" />
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-2xl shadow-brand-navy/20 lg:aspect-[5/6]">
+          <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-brand-navy-deep shadow-xl shadow-slate-300/50 lg:aspect-[5/6]">
             {data.image ? (
               <Image
                 src={data.image.url}
@@ -44,25 +43,6 @@ export function AboutStory({ data }: { data: AboutData['story'] }) {
             ) : (
               <Art />
             )}
-          </div>
-          {/* smaller second picture */}
-          <div className="absolute -bottom-0 right-4 w-[42%] overflow-hidden rounded-3xl border-[6px] border-white bg-brand-navy shadow-2xl sm:right-[-1.5rem]">
-            <div className="relative aspect-square">
-              {data.secondImage ? (
-                <Image src={data.secondImage.url} alt={data.secondImage.alt || ''} fill sizes="240px" className="object-cover" />
-              ) : (
-                <div className="absolute inset-0 bg-[linear-gradient(135deg,#ff8e00,#ffc000)]">
-                  <Image
-                    src="/images/brand/brightlink-mark.png"
-                    alt=""
-                    width={212}
-                    height={280}
-                    aria-hidden
-                    className="absolute left-1/2 top-1/2 h-[62%] w-auto -translate-x-1/2 -translate-y-1/2 opacity-95"
-                  />
-                </div>
-              )}
-            </div>
           </div>
           {data.badge && (
             <div className="absolute left-5 top-5 flex items-center gap-2.5 rounded-full bg-white/95 py-2 pl-3 pr-5 text-sm font-semibold text-brand-navy-deep shadow-xl backdrop-blur">

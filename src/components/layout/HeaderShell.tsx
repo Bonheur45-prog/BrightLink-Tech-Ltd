@@ -252,11 +252,11 @@ export function HeaderShell({ company, header, locale, enabledLocales, heroEnabl
 
                     {hasChildren && (
                       <div
-                        className={`absolute left-0 top-full w-80 pt-3 transition duration-200 ${
+                        className={`absolute left-1/2 top-full w-[min(42rem,calc(100vw-2rem))] -translate-x-1/2 pt-3 transition duration-200 ${
                           openMenu === i ? 'visible translate-y-0 opacity-100' : 'invisible translate-y-1 opacity-0'
                         }`}
                       >
-                        <ul className="rounded-2xl bg-white p-2 shadow-2xl shadow-brand-navy-deep/20 ring-1 ring-brand-navy-deep/10">
+                        <ul className="grid max-h-[calc(100dvh-6rem)] grid-cols-2 gap-1 overflow-y-auto rounded-2xl bg-white p-2 shadow-xl shadow-slate-300/50 ring-1 ring-brand-blue/10">
                           {item.children.map((child) => (
                             <li key={`${child.label}-${child.url}`}>
                               <SmartLink
