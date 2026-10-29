@@ -1,9 +1,12 @@
+'use client'
+
 import Image from 'next/image'
 
 import { ArrowRightIcon, ArrowUpRightIcon } from '@/components/ui/Icons'
 import { SmartLink } from '@/components/ui/SmartLink'
 import type { ProjectItem } from '@/lib/content/types'
 import { ProgressBar } from './ProgressBar'
+import { useUi } from '@/components/i18n/useUi'
 
 const BG = [
   'bg-[linear-gradient(135deg,#001a45,#00327f_60%,#0057a3)]',
@@ -13,21 +16,23 @@ const BG = [
 ]
 
 export function StatusBadge({ status }: { status: ProjectItem['status'] }) {
+  const t = useUi()
   return status === 'completed' ? (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800 ring-1 ring-emerald-600/20">
       <span aria-hidden className="size-1.5 rounded-full bg-emerald-600" />
-      Completed
+      {t.completed}
     </span>
   ) : (
     <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800 ring-1 ring-amber-600/25">
       <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-amber-500" />
-      In progress
+      {t.inProgress}
     </span>
   )
 }
 
 /** One project card: picture space, status, short intro, progress bar when still being built, and links. */
 export function ProjectCard({ project: p, index = 0 }: { project: ProjectItem; index?: number }) {
+  const t = useUi()
   return (
     <article className="group relative flex h-full flex-col overflow-hidden rounded-3xl bg-white shadow-lg shadow-brand-navy/8 ring-1 ring-brand-navy/10 transition duration-300 hover:-translate-y-1.5 hover:shadow-2xl hover:shadow-brand-navy/15">
       <div className="relative aspect-[16/10] overflow-hidden bg-brand-navy-deep">
@@ -59,7 +64,7 @@ export function ProjectCard({ project: p, index = 0 }: { project: ProjectItem; i
         {p.shortDescription && <p className="mt-2 line-clamp-3 flex-1 text-[0.95rem] leading-relaxed text-slate-600">{p.shortDescription}</p>}
         {p.status === 'in-progress' && (
           <div className="mt-4">
-            <ProgressBar value={p.progress} label="Progress" />
+            <ProgressBar value={p.progress} label={t.progress} />
           </div>
         )}
         <div className="mt-auto flex items-center justify-between gap-4 pt-5">
@@ -68,7 +73,7 @@ export function ProjectCard({ project: p, index = 0 }: { project: ProjectItem; i
             aria-label={`View details: ${p.title}`}
             className="inline-flex items-center gap-2 font-semibold text-brand-blue after:absolute after:inset-0 hover:text-brand-navy"
           >
-            View details
+            {t.viewDetails}
             <ArrowRightIcon width={18} height={18} className="transition group-hover:translate-x-1.5" />
           </SmartLink>
           {p.externalUrl && (
@@ -78,7 +83,7 @@ export function ProjectCard({ project: p, index = 0 }: { project: ProjectItem; i
               rel="noopener noreferrer"
               className="relative z-10 inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-brand-navy"
             >
-              Visit site
+              {t.visitSite}
               <ArrowUpRightIcon width={16} height={16} />
             </a>
           )}

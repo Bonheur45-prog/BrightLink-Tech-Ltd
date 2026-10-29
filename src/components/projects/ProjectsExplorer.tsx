@@ -8,6 +8,7 @@ import { ArrowRightIcon, CheckIcon, ClockIcon, RocketIcon } from '@/components/u
 import { SmartLink } from '@/components/ui/SmartLink'
 import type { ProjectItem, ProjectsPageData } from '@/lib/content/types'
 import { ProjectCard } from './ProjectCard'
+import { useUi } from '@/components/i18n/useUi'
 
 type Filter = 'all' | 'completed' | 'in-progress'
 
@@ -25,24 +26,25 @@ export function ProjectsExplorer({
   page: Pick<ProjectsPageData, 'completed' | 'inProgress'>
 }) {
   const [filter, setFilter] = useState<Filter>('all')
+  const t = useUi()
   const tabs: { id: Filter; label: string; count: number }[] = [
-    { id: 'all', label: 'All projects', count: completed.length + inProgress.length },
-    { id: 'completed', label: 'Completed', count: completed.length },
-    { id: 'in-progress', label: 'In progress', count: inProgress.length },
+    { id: 'all', label: t.allProjects, count: completed.length + inProgress.length },
+    { id: 'completed', label: t.completed, count: completed.length },
+    { id: 'in-progress', label: t.inProgress, count: inProgress.length },
   ].filter((t) => t.id === 'all' || t.count > 0) as { id: Filter; label: string; count: number }[]
 
   const showCompleted = filter !== 'in-progress' && completed.length > 0
   const showInProgress = filter !== 'completed' && inProgress.length > 0
 
   const guide = [
-    { id: 'completed', icon: <CheckIcon width={26} height={26} strokeWidth={2.4} />, n: completed.length, title: 'Completed projects', text: 'Delivered and in use', tone: 'bg-gradient-to-br from-brand-teal to-brand-green text-white' },
-    { id: 'in-progress', icon: <ClockIcon width={26} height={26} />, n: inProgress.length, title: 'Projects in progress', text: 'Being built right now', tone: 'bg-brand-warm text-brand-navy-deep' },
+    { id: 'completed', icon: <CheckIcon width={26} height={26} strokeWidth={2.4} />, n: completed.length, title: t.completedProjects, text: t.deliveredInUse, tone: 'bg-gradient-to-br from-brand-teal to-brand-green text-white' },
+    { id: 'in-progress', icon: <ClockIcon width={26} height={26} />, n: inProgress.length, title: t.projectsInProgress, text: t.beingBuilt, tone: 'bg-brand-warm text-brand-navy-deep' },
   ].filter((g) => g.n > 0)
 
   return (
     <>
       {/* first-look guide: what is on this page */}
-      <section aria-label="What is on this page" className="relative z-10 -mt-10 pb-6">
+      <section aria-label={t.whatIsOnThisPage} className="relative z-10 -mt-10 pb-6">
         <div className="container-x">
           <ul className="grid gap-4 sm:grid-cols-3">
             {guide.map((g, i) => (
@@ -71,8 +73,8 @@ export function ProjectsExplorer({
                   <RocketIcon width={26} height={26} />
                 </span>
                 <span className="flex-1">
-                  <span className="block font-semibold">Want something like this?</span>
-                  <span className="block text-sm text-white/70">Start a conversation with us</span>
+                  <span className="block font-semibold">{t.wantSomethingLikeThis}</span>
+                  <span className="block text-sm text-white/70">{t.startConversationWithUs}</span>
                 </span>
                 <ArrowRightIcon width={18} height={18} className="text-brand-yellow transition group-hover:translate-x-1" />
               </SmartLink>
@@ -84,7 +86,7 @@ export function ProjectsExplorer({
       {/* filter tabs */}
       {tabs.length > 2 && (
         <div className="container-x pt-10">
-          <div role="group" aria-label="Filter projects" className="flex flex-wrap justify-center gap-2.5">
+          <div role="group" aria-label={t.filterProjects} className="flex flex-wrap justify-center gap-2.5">
             {tabs.map((t) => (
               <button
                 key={t.id}
@@ -107,7 +109,7 @@ export function ProjectsExplorer({
       {completed.length > 0 && (
         <section id="completed" hidden={!showCompleted} aria-labelledby="completed-heading" className="scroll-mt-24 bg-white py-16 lg:py-24">
           <div className="container-x">
-            <SectionHeading id="completed-heading" eyebrow="Completed" title={page.completed.heading} intro={page.completed.intro} />
+            <SectionHeading id="completed-heading" eyebrow={t.completed} title={page.completed.heading} intro={page.completed.intro} />
             <ul className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
               {completed.map((p, i) => (
                 <Reveal as="li" key={p.id} delay={(i % 3) * 110}>
@@ -122,7 +124,7 @@ export function ProjectsExplorer({
       {inProgress.length > 0 && (
         <section id="in-progress" hidden={!showInProgress} aria-labelledby="in-progress-heading" className="scroll-mt-24 bg-slate-50 py-16 lg:py-24">
           <div className="container-x">
-            <SectionHeading id="in-progress-heading" eyebrow="In progress" title={page.inProgress.heading} intro={page.inProgress.intro} />
+            <SectionHeading id="in-progress-heading" eyebrow={t.inProgress} title={page.inProgress.heading} intro={page.inProgress.intro} />
             <ul className="mt-12 grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
               {inProgress.map((p, i) => (
                 <Reveal as="li" key={p.id} delay={(i % 3) * 110}>

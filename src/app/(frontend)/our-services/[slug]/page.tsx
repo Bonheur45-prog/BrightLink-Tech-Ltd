@@ -61,7 +61,7 @@ export default async function ServicePage({ params }: Props) {
           fallbackImage: service.image ?? null,
         })}
       />
-      <OtherServices services={all.filter((s) => s.slug !== slug)} />
+      <OtherServices services={all.filter((s) => s.slug !== slug)} heading={t.otherServices} />
     </>
   )
 }

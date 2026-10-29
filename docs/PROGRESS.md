@@ -6,11 +6,10 @@ Plan: 7 phases. Each phase is pushed to its own branch (`phase-N`); CI (`.github
 |---|---|---|
 | 1 | Foundation: schema, auth, admin shell, users, audit log, R2 media library | done |
 | 2 | Site settings, header, footer, SEO defaults, languages, curated font list | **done (branch phase-2)** |
-
 | 3 | Collections: services, projects, clients, team, leads, subscribers, trash | **done (branch phase-3)** |
 | 4 | Page builder: section catalogue, layouts, backgrounds, draft/publish, versions | **done (branch phase-4)** |
 | 5 | Blog: categories, posts, Tiptap editor, fonts, SEO assistant, RSS | **done (branch phase-5)** |
-| 6 | Public site reconnected: CMS data, locale routes, caching, motion, responsive images | **done on branch phase-6; CI run 17 passed** |
+| 6 | Public site reconnected: CMS data, locale routes, caching, motion, responsive images | **done; review fixes in PRs #8–#14 and the CI/translation PR (see below)** |
 | 7 | Hardening: deploy, performance and SEO audit, tests | |
 
 ## What exists after Phase 1
@@ -65,6 +64,30 @@ Admin keeps Oak's CSS-module design tokens (recoloured); public site stays Tailw
 - Smooth-scroll/parallax switches are stored but only take effect in Phase 6. Locale routing (`/fr`, `/rw`) is Phase 6;
   until then the site renders English.
 - CI: migrate deploy, seed ×2, typecheck, lint, 19 unit tests, build, start the standalone server and check key pages.
+
+## Phase 6 review fixes (after the review of October 2026)
+- **#8 Deploy and SEO addresses**: deploy reaches a database on the VPS through an SSH tunnel; `SITE_URL` drives every
+  absolute address (canonical, sitemap, robots, structured data); DEPLOY.md lists the secrets.
+- **#9 Languages**: `/fr/…` and `/rw/…` are real addresses (no cookie redirect), with hreflang, `og:locale`, per-language
+  sitemap entries; links keep the language; disabled languages send visitors to English; `/en/…` → 308.
+- **#10 Page builder drives the pages**: every public page is drawn from its page-builder sections
+  (`src/components/sections/`); old one-off components and loaders removed; starter pages match the previous design.
+- **#11 Leads**: e-mail notification of new messages (SMTP, sent after the reply), Cloudflare Turnstile, per-visitor
+  limits; the form keeps what the visitor typed after an error. Admin messages show whether the e-mail went out.
+- **#12 Images**: no resizing on the server; a custom loader picks the stored R2 WebP copy (480/960/1600/original);
+  brand files have WebP copies.
+- **#13**: brought #9–#12 into `main` (stacked PRs had merged into each other's branches).
+- **#14 Articles**: the article page shows the safe HTML saved by the editor (tables, note boxes, code, alignment) and
+  its table of contents, instead of a lossy conversion.
+- **CI / translations PR**:
+  - CI runs on pull requests (and by hand), one run per PR.
+  - Deploy skips with a notice until all its secrets are set, instead of failing.
+  - All fixed interface text (forms, menus, buttons, labels, dates, form messages, screen-reader labels) is in
+    `src/i18n/ui.ts` in English and French. Kinyarwanda uses English for now (TODO: Kinyarwanda texts).
+  - **Production fix**: the built site could not load Prisma's `query_compiler_bg.wasm` and quietly showed the
+    starter content; `next.config.ts` now includes it, and CI fails if the built site logs a database fallback.
+- Still to do (hosting step): PostgreSQL on the VPS (small settings), `.env`, Caddy, GitHub secrets, nightly backup,
+  first deploy, memory checks.
 
 ## Phase 6 implementation
 - First data-layer slice reconnects public services, projects, clients and team reads to published Phase 3 CMS records.

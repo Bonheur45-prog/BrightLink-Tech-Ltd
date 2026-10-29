@@ -1,9 +1,14 @@
+'use client'
+
 import Image from 'next/image'
 
 import { IconByKey } from '@/components/ui/Icons'
 import { SmartLink } from '@/components/ui/SmartLink'
 import type { BlogPost } from '@/lib/content/types'
-import { CAT, formatDate } from './theme'
+import { CAT } from './theme'
+import { formatDate } from '@/i18n/ui'
+import { useUi } from '@/components/i18n/useUi'
+import { useLocale } from '@/components/i18n/LocaleProvider'
 
 /** Picture of the article, or brand artwork in the category colour until one is uploaded. */
 export function PostCover({ post, sizes, className = '' }: { post: BlogPost; sizes: string; className?: string }) {
@@ -41,17 +46,20 @@ export function CategoryChip({ post }: { post: BlogPost }) {
 }
 
 export function PostMeta({ post }: { post: BlogPost }) {
+  const locale = useLocale()
+  const t = useUi()
   return (
     <p className="text-sm text-slate-500">
-      <time dateTime={post.publishedAt}>{formatDate(post.publishedAt)}</time>
+      <time dateTime={post.publishedAt}>{formatDate(post.publishedAt, locale)}</time>
       <span aria-hidden> · </span>
-      {post.readingMinutes} min read
+      {post.readingMinutes} {t.minRead}
     </p>
   )
 }
 
 /** One article card. `large` is used for the lead story of the magazine grid. */
 export function PostCard({ post, large = false }: { post: BlogPost; large?: boolean }) {
+  const t = useUi()
   const color = post.category?.color ?? 'blue'
   return (
     <article
@@ -74,7 +82,7 @@ export function PostCard({ post, large = false }: { post: BlogPost; large?: bool
         </h3>
         <p className={`mt-3 leading-relaxed text-slate-600 ${large ? 'line-clamp-3 text-base' : 'line-clamp-3 text-[0.95rem]'}`}>{post.excerpt}</p>
         <p className="mt-auto pt-5 text-sm font-semibold text-brand-blue">
-          Read article <span aria-hidden className="inline-block transition group-hover:translate-x-1.5">→</span>
+          {t.readArticle} <span aria-hidden className="inline-block transition group-hover:translate-x-1.5">→</span>
         </p>
       </div>
     </article>

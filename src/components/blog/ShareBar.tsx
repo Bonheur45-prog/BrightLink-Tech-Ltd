@@ -3,10 +3,12 @@
 import { useState } from 'react'
 
 import { SocialIcon } from '@/components/ui/Icons'
+import { useUi } from '@/components/i18n/useUi'
 
 /** Share links open the visitor's own account on each network; nothing is hard-coded to BrightLink's pages. */
 export function ShareBar({ url, title, vertical = false }: { url: string; title: string; vertical?: boolean }) {
   const [copied, setCopied] = useState(false)
+  const text = useUi()
   const u = encodeURIComponent(url)
   const t = encodeURIComponent(title)
   const links = [
@@ -33,7 +35,7 @@ export function ShareBar({ url, title, vertical = false }: { url: string; title:
         </a>
       ))}
       <button type="button" onClick={copy} className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-brand-navy transition hover:border-brand-blue hover:text-brand-blue">
-        {copied ? 'Link copied ✓' : 'Copy link'}
+        {copied ? text.linkCopied : text.copyLink}
       </button>
     </div>
   )
