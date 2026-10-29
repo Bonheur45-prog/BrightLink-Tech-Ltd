@@ -45,18 +45,18 @@ export function BannerSection({ section, ctx }: SectionProps) {
         <div aria-hidden className="absolute inset-0 -z-10 bg-[linear-gradient(135deg,#001a45_0%,#00327f_60%,#0057a3_100%)]">
           <div className="hero-orb absolute -left-24 -top-10 size-[24rem] rounded-full bg-brand-orange/30 blur-3xl" />
         </div>
-        <div className="container-x grid items-center gap-10 pb-16 pt-14 lg:grid-cols-12 lg:gap-14 lg:pb-24 lg:pt-20">
+        <div className="container-x grid items-center gap-10 pb-16 pt-14 lg:grid-cols-12 lg:gap-14 lg:pb-20 lg:pt-16">
           <div className="lg:col-span-7">
             <Breadcrumb crumbs={ctx.page.crumbs} />
             {eyebrow && (
-              <p className="hero-reveal mt-8 inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] backdrop-blur sm:text-[0.8rem]">
+              <p className="hero-reveal mt-8 inline-flex lg:mt-6 items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] backdrop-blur sm:text-[0.8rem]">
                 <span aria-hidden className="size-2 rounded-full bg-brand-link" />
                 {eyebrow}
               </p>
             )}
             <Heading className="hero-reveal mt-5 font-display text-page font-bold !text-white [animation-delay:120ms]">{heading}</Heading>
-            {intro && <p className="hero-reveal mt-6 max-w-2xl text-lg leading-relaxed text-white/85 [animation-delay:240ms] lg:text-xl">{intro}</p>}
-            <Buttons primary={cta} tone="dark" className="hero-reveal mt-9 [animation-delay:320ms]" />
+            {intro && <p className="hero-reveal mt-6 max-w-2xl text-lg leading-relaxed text-white/85 [animation-delay:240ms] lg:mt-5">{intro}</p>}
+            <Buttons primary={cta} tone="dark" className="hero-reveal mt-9 lg:mt-8 [animation-delay:320ms]" />
           </div>
           <div className="hero-reveal relative aspect-[4/3] overflow-hidden rounded-[2rem] shadow-2xl shadow-black/30 [animation-delay:200ms] lg:col-span-5">
             {image ? (

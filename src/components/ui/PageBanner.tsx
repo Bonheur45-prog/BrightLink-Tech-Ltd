@@ -54,7 +54,7 @@ export function PageBanner({
         )}
       </div>
 
-      <div className="container-x pb-16 pt-14 lg:pb-24 lg:pt-20">
+      <div className="container-x pb-16 pt-14 lg:pb-20 lg:pt-16">
         <nav aria-label="Breadcrumb">
           <ol className="flex flex-wrap items-center gap-1.5 text-sm text-white/70">
             {crumbs.map((c, i) => (
@@ -75,7 +75,7 @@ export function PageBanner({
         </nav>
 
         {eyebrow && (
-          <p className="hero-reveal mt-8 inline-flex items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] backdrop-blur sm:text-[0.8rem]">
+          <p className="hero-reveal mt-8 inline-flex lg:mt-6 items-center gap-2.5 rounded-full border border-white/20 bg-white/10 px-4 py-1.5 text-xs font-semibold uppercase tracking-[0.14em] backdrop-blur sm:text-[0.8rem]">
             <span aria-hidden className="size-2 rounded-full bg-brand-link" />
             {eyebrow}
           </p>
@@ -84,12 +84,12 @@ export function PageBanner({
           <Highlighted text={title} highlight={highlight} tone="dark" />
         </Heading>
         {intro && (
-          <p className="hero-reveal mt-6 max-w-2xl text-lg leading-relaxed text-white/85 [animation-delay:240ms] lg:text-xl">
+          <p className="hero-reveal mt-6 max-w-2xl text-lg leading-relaxed text-white/85 [animation-delay:240ms] lg:mt-5">
             {intro}
           </p>
         )}
         {cta && (
-          <SmartLink href={cta.url} newTab={cta.newTab} className="btn btn-primary hero-reveal mt-9 [animation-delay:320ms]">
+          <SmartLink href={cta.url} newTab={cta.newTab} className="btn btn-primary hero-reveal mt-9 lg:mt-8 [animation-delay:320ms]">
             {cta.label}
             <ArrowRightIcon width={18} height={18} />
           </SmartLink>

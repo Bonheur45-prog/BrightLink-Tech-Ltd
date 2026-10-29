@@ -252,7 +252,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
     if (e.key === 'ArrowLeft') prev()
   }
 
-  const controlsOffset = hasHighlights ? 'bottom-24 lg:bottom-28' : 'bottom-6 lg:bottom-9'
+  const controlsOffset = hasHighlights ? 'bottom-24' : 'bottom-6 lg:bottom-8'
   const glassBtn =
     'grid size-11 place-items-center rounded-full border border-white/30 bg-white/10 text-white backdrop-blur transition hover:border-white/70 hover:bg-white/25'
 
@@ -288,7 +288,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
 
       {/* ---------------- text (all slides stacked in one grid cell so the tallest sets the height) */}
       <div
-        className={`container-x relative z-10 grid pt-36 lg:pt-44 ${hasHighlights ? 'pb-48 lg:pb-56' : 'pb-36 lg:pb-40'}`}
+        className={`container-x relative z-10 grid pt-36 lg:pt-[clamp(8.75rem,19vh,11rem)] ${hasHighlights ? 'pb-48 lg:pb-[clamp(10rem,23vh,13rem)]' : 'pb-36 lg:pb-[clamp(6.5rem,15vh,9rem)]'}`}
         aria-live={running ? 'off' : 'polite'}
       >
         {slides.map((slide, i) => {
@@ -324,7 +324,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
               </Heading>
               {slide.subheading && (
                 <p
-                  className={`${animate} mt-6 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg lg:text-xl`}
+                  className={`${animate} mt-6 max-w-2xl text-base leading-relaxed text-white/85 sm:text-lg lg:mt-5`}
                   style={delay(0.35)}
                 >
                   {slide.subheading}
@@ -332,7 +332,7 @@ export function HeroSlider({ hero, hasHighlights, firstHeading = 'h1' }: Props) 
               )}
               {(slide.primaryCta || slide.secondaryCta) && (
                 <div
-                  className={`${animate} mt-9 flex flex-wrap gap-3 ${centered ? 'justify-center' : ''}`}
+                  className={`${animate} mt-9 flex flex-wrap gap-3 lg:mt-8 ${centered ? 'justify-center' : ''}`}
                   style={delay(0.5)}
                 >
                   {slide.primaryCta && (

@@ -22,12 +22,13 @@ const config: Config = {
         },
       },
       fontSize: {
-        // Fluid hero heading: ~34px on phones up to 76px on large screens
-        // Section headings: ~30px on phones up to 48px on desktop
-        section: ['clamp(1.9rem, 2.4vw + 1.1rem, 3rem)', { lineHeight: '1.12', letterSpacing: '-0.015em' }],
-        // Inner-page banner heading: ~36px on phones up to 60px on desktop
-        page: ['clamp(2.2rem, 3.6vw + 1rem, 3.75rem)', { lineHeight: '1.08', letterSpacing: '-0.02em' }],
-        hero: ['clamp(2.15rem, 5vw + 0.6rem, 4.75rem)', { lineHeight: '1.06', letterSpacing: '-0.02em' }],
+        // Section headings: ~30px on phones (unchanged) up to 40px on desktop
+        section: ['clamp(1.9rem, 1.4vw + 1rem, 2.5rem)', { lineHeight: '1.12', letterSpacing: '-0.015em' }],
+        // Inner-page banner heading: ~35px on phones (unchanged) up to 52px on desktop
+        page: ['clamp(2.2rem, min(2.2vw, 4.4vh) + 0.95rem, 3.25rem)', { lineHeight: '1.08', letterSpacing: '-0.02em' }],
+        // Hero heading: scales with the screen's width AND height, so the hero fits on short laptop screens:
+        // 34px on phones (unchanged), ~50-58px on 1366px laptops, at most 64px.
+        hero: ['clamp(2.15rem, min(3.3vw, 6.2vh) + 0.75rem, 4rem)', { lineHeight: '1.06', letterSpacing: '-0.02em' }],
       },
       fontFamily: {
         sans: ['var(--font-body)', 'ui-sans-serif', 'system-ui', 'sans-serif'],

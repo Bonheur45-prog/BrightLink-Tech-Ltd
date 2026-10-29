@@ -107,6 +107,8 @@ jobs:
           curl -s http://localhost:3000/blog/stockpro-inventory-management-system | grep -q 'class="article-html"' || { echo "::error title=Smoke::article page does not render the saved HTML"; fail=1; }
           # the RSS feed must come from the database (seeded articles)
           curl -s http://localhost:3000/blog/feed.xml | grep -q 'StockPro' || { echo "::error title=Smoke::RSS feed lacks the seeded articles"; fail=1; }
+          # page sections must not sit in display:contents wrappers: Next.js then cannot scroll a new page to its top
+          curl -s http://localhost:3000/about-us | grep -q '<div class="contents">' && { echo "::error title=Smoke::page sections are wrapped in display:contents (new pages would not open at the top)"; fail=1; }
           # the built site must read the database itself, never fall back to the starter content
           if grep -qE 'could not be loaded|ENOENT' /tmp/server.txt; then grep -m3 -A4 -E 'could not be loaded|ENOENT' /tmp/server.txt | sed 's/^/::error title=Database::/'; fail=1; fi
           if [ $fail = 1 ]; then tail -30 /tmp/server.txt | sed 's/^/::error title=Server log::/'; exit 1; fi
