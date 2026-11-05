@@ -1,9 +1,15 @@
 import 'server-only';
 import { getAllPosts } from '@/lib/content';
+import imageLoader from '@/lib/image-loader';
 import { prisma } from '@/lib/db';
+import { photoUrl, withoutSizes } from '@/lib/media';
 import { cachedPublic } from '@/lib/public-cache';
 
-export type FeedItem = { title: string; url: string; publishedAt: string; category: string; excerpt: string };
+export type FeedItem = { title: string; url: string; publishedAt: string; category: string; excerpt: string; image: string | null };
+
+/** The stored copy closest to LinkedIn's share size (1200 px wide); plain address, no size marker. */
+const feedImage = (url: string | null | undefined): string | null =>
+  !url ? null : url.startsWith('/') ? withoutSizes(url) : imageLoader({ src: url, width: 1200 });
 
 /**
  * Published articles for the RSS feed (newest first). Scheduled ones appear once their date has
@@ -16,7 +22,7 @@ export const loadFeedPosts = cachedPublic('blog-feed', async (): Promise<FeedIte
       where: { status: 'PUBLISHED', deletedAt: null, noIndex: false, publishedAt: { lte: new Date() } },
       orderBy: { publishedAt: 'desc' },
       take: 30,
-      include: { translations: { where: { locale: 'en' } }, category: { include: { translations: { where: { locale: 'en' } } } } },
+      include: { translations: { where: { locale: 'en' } }, category: { include: { translations: { where: { locale: 'en' } } } }, coverMedia: true },
     });
     if (rows.length) {
       return rows.map((p) => ({
@@ -25,10 +31,11 @@ export const loadFeedPosts = cachedPublic('blog-feed', async (): Promise<FeedIte
         publishedAt: p.publishedAt!.toISOString(),
         category: p.category.translations[0]?.name ?? '',
         excerpt: p.translations[0]?.excerpt ?? '',
+        image: p.coverMedia && !p.coverMedia.deletedAt ? feedImage(photoUrl(p.coverMedia)) : null,
       }));
     }
   } catch (error) {
     console.error('[blog] feed could not read the database; using starter articles', error);
   }
-  return (await getAllPosts()).slice(0, 30).map((p) => ({ title: p.title, url: p.url, publishedAt: p.publishedAt, category: p.category?.name ?? '', excerpt: p.excerpt }));
+  return (await getAllPosts()).slice(0, 30).map((p) => ({ title: p.title, url: p.url, publishedAt: p.publishedAt, category: p.category?.name ?? '', excerpt: p.excerpt, image: feedImage(p.image?.url) }));
 });
