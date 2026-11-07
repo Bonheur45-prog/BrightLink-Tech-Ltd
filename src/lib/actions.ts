@@ -1,8 +1,8 @@
 'use server'
 
+import { randomBytes } from 'node:crypto'
 import { headers } from 'next/headers'
 import { after } from 'next/server'
-import { Prisma } from '@prisma/client'
 import { ui } from '@/i18n/ui'
 import { getRequestLocale } from '@/lib/content/request-locale'
 import { prisma } from '@/lib/db'
@@ -76,7 +76,8 @@ export async function submitContact(_prev: FormState, data: FormData): Promise<F
 
 /** “Subscribe for our updates” → Inbox → Subscribers in /admin. */
 export async function subscribe(_prev: FormState, data: FormData): Promise<FormState> {
-  const t = ui(await getRequestLocale())
+  const locale = await getRequestLocale()
+  const t = ui(locale)
   if (field(data, 'company_website')) return { status: 'success', message: t.subscribed }
 
   const email = field(data, 'email', 200).toLowerCase()
@@ -87,12 +88,12 @@ export async function subscribe(_prev: FormState, data: FormData): Promise<FormS
     return { status: 'error', message: t.subscribeTooMany, values: { email } }
 
   try {
-    try {
-      await prisma.subscriber.create({ data: { email, source: field(data, 'source', 120) || 'Home page — Why work with us' } })
-    } catch (error) {
-      // already subscribed: same friendly answer, nothing revealed
-      if (!(error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002')) throw error
-    }
+    // Signing up again (also after unsubscribing) turns the subscription back on; same friendly answer either way.
+    await prisma.subscriber.upsert({
+      where: { email },
+      update: { active: true },
+      create: { email, locale, token: randomBytes(24).toString('base64url'), source: field(data, 'source', 120) || 'Home page — Why work with us' },
+    })
     return { status: 'success', message: t.subscribed }
   } catch (error) {
     console.error('[subscribe] Could not save subscriber', error)

@@ -9,6 +9,7 @@ import { setSubscriberActive } from '../messages/actions';
 import styles from '../_collections/shared.module.css';
 
 export const metadata: Metadata = { title: 'Subscribers' };
+const LANG: Record<string, string> = { en: 'English', fr: 'Français', rw: 'Kinyarwanda' };
 const when = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeZone: 'Africa/Kigali' });
 
 export default async function SubscribersPage() {
@@ -19,7 +20,7 @@ export default async function SubscribersPage() {
     <>
       <PageHeader
         title="Subscribers"
-        description={`${active} active. People who asked for updates. Deactivate anyone who asks to be removed.`}
+        description={`${active} active. Every new article is emailed to them when it goes live, in their language when it is translated. Each email has an unsubscribe link; you can also remove someone here.`}
         actions={<Button href="/admin/api/export/subscribers" newTab>Download CSV</Button>}
       />
       {rows.length === 0 ? (
@@ -31,7 +32,7 @@ export default async function SubscribersPage() {
               <span className={styles.title}>
                 {r.email}
                 <span className={styles.sub}>
-                  {when.format(r.createdAt)} · {r.source}
+                  {when.format(r.createdAt)} · {r.source} · {LANG[r.locale] ?? r.locale}
                   {!r.active && ' · removed'}
                 </span>
               </span>
