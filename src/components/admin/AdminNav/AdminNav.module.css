@@ -1,83 +1,384 @@
-.nav {
-  display: flex;
-  gap: var(--space-2);
-  overflow-x: auto;
+/* CMS frame: navy sidebar (logo on top, menu that scrolls, account pinned at the bottom; a drawer on
+   phones) + white sticky top bar + page. */
+.shell {
+  --sidebar-w: 16rem;
+  --topbar-h: 3.75rem;
+  min-height: 100dvh;
+  background: var(--plaster);
 }
 
-.group {
-  display: contents;
+.skip {
+  position: absolute;
+  left: var(--space-2);
+  top: -4rem;
+  z-index: 100;
+  padding: var(--space-2) var(--space-4);
+  background: var(--white);
+  color: var(--text);
+}
+
+.skip:focus {
+  top: var(--space-2);
+}
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.sidebar {
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 70;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto; /* logo · menu (scrolls) · account (always visible) */
+  width: min(var(--sidebar-w), 86vw);
+  background:
+    radial-gradient(28rem 18rem at 0% 100%, rgb(255 142 0 / 0.12), transparent 70%),
+    var(--chocolate-900);
+  color: var(--text-on-dark);
+  transform: translateX(-100%);
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.shell[data-open] .sidebar {
+  transform: none;
+  box-shadow: 0 20px 60px rgb(var(--chocolate-900-rgb) / 0.4);
+}
+
+.brand {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  height: var(--topbar-h);
+  padding: 0 var(--space-5);
+  border-bottom: 1px solid rgb(255 255 255 / 0.08);
+}
+
+.brandLink {
+  display: block;
+  line-height: 0;
+}
+
+.brandLink:focus-visible {
+  outline: 2px solid var(--gold-300);
+  outline-offset: 4px;
+}
+
+.brandLogo {
+  width: 8.5rem;
+  height: auto;
+}
+
+.close {
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-on-dark-muted);
+  cursor: pointer;
+}
+
+.close:hover {
+  background: rgb(255 255 255 / 0.08);
+  color: var(--white);
+}
+
+.nav {
+  display: grid;
+  align-content: start;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-3) var(--space-5);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.2) transparent;
 }
 
 .groupLabel {
-  display: none;
+  margin: 0 0 var(--space-1);
+  padding: 0 var(--space-3);
+  color: var(--gold-300);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
 }
 
 .list {
-  display: flex;
-  gap: var(--space-1);
+  display: grid;
+  gap: 2px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 
 .link {
+  position: relative;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  padding: var(--space-2) var(--space-3);
-  border-left: 2px solid transparent;
+  gap: var(--space-3);
+  min-height: 2.35rem;
+  padding: 0 var(--space-3);
+  border-radius: 8px;
   color: var(--text-on-dark-muted);
-  font-size: var(--step--1);
+  font-size: 0.92rem;
   font-weight: 500;
   text-decoration: none;
+  transition: background-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.linkIcon {
+  flex: none;
+  opacity: 0.8;
+}
+
+.linkLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .link:hover {
-  color: var(--white);
   background: rgb(255 255 255 / 0.06);
+  color: var(--white);
 }
 
 .link[aria-current='page'] {
+  background: rgb(255 255 255 / 0.1);
   color: var(--white);
-  border-left-color: var(--gold-300);
-  background: rgb(255 255 255 / 0.08);
+  font-weight: 600;
+}
+
+/* gold marker on the left of the current section */
+.link[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 0.45rem;
+  bottom: 0.45rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--gold-300);
+}
+
+.link[aria-current='page'] .linkIcon {
+  color: var(--gold-300);
+  opacity: 1;
 }
 
 .count {
-  min-width: 1.5rem;
-  padding: 0 var(--space-1);
-  border-radius: var(--radius-control);
+  min-width: 1.4rem;
+  padding: 0 0.4rem;
+  border-radius: 999px;
   background: var(--gold-300);
   color: var(--chocolate-900);
-  font-size: var(--step--1);
+  font-size: 0.72rem;
   font-weight: 700;
+  line-height: 1.4rem;
   text-align: center;
 }
 
+/* Your account, always at the bottom of the sidebar. */
+.account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin: 0 var(--space-3) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid rgb(255 255 255 / 0.1);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.05);
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2.35rem;
+  height: 2.35rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--gold-300), var(--gold-500));
+  color: var(--chocolate-900);
+  font-family: var(--font-display);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.who {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.userName {
+  overflow: hidden;
+  color: var(--white);
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.userEmail {
+  overflow: hidden;
+  color: var(--text-on-dark-muted);
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Doubled class: beats the Button's own ghost styles whatever order the stylesheets load in. */
+.logout.logout {
+  min-height: 2.2rem;
+  padding: 0 var(--space-2);
+  border-radius: 8px;
+  color: var(--text-on-dark-muted);
+}
+
+.logout.logout:hover:not(:disabled) {
+  background: rgb(255 255 255 / 0.1);
+  color: var(--white);
+}
+
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  border: 0;
+  background: rgb(var(--chocolate-900-rgb) / 0.5);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--duration-base) var(--ease-out);
+}
+
+.shell[data-open] .scrim {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ── Top bar ─────────────────────────────────────────── */
+.body {
+  min-width: 0;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  height: var(--topbar-h);
+  padding: 0 var(--gutter);
+  background: rgb(255 255 255 / 0.88);
+  backdrop-filter: saturate(1.4) blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.menuButton {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-left: calc(var(--space-2) * -1);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--chocolate-800);
+  cursor: pointer;
+}
+
+.crumbs {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  font-size: 0.92rem;
+}
+
+.crumbGroup {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.crumbGroup::after {
+  content: '/';
+  margin-left: var(--space-2);
+  color: var(--line);
+}
+
+.crumbPage {
+  overflow: hidden;
+  color: var(--chocolate-800);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.viewSite {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--chocolate-800);
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+}
+
+.viewSite:hover {
+  border-color: var(--gold-500);
+  color: var(--gold-700);
+}
+
+.main {
+  min-width: 0;
+}
+
+.content {
+  max-width: var(--page-max);
+  padding: var(--space-6) var(--gutter) var(--space-9);
+}
+
+@media (max-width: 30em) {
+  .viewSite span {
+    display: none;
+  }
+}
+
+/* ── Wide screens: sidebar always visible ────────────── */
 @media (min-width: 52em) {
-  .nav {
-    flex-direction: column;
-    gap: var(--space-5);
-    overflow: visible;
+  .shell {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
   }
 
-  .group {
-    display: block;
+  .sidebar {
+    position: sticky;
+    top: 0;
+    height: 100dvh;
+    width: auto;
+    transform: none;
+    box-shadow: none !important;
   }
 
-  .groupLabel {
-    display: block;
-    margin-bottom: var(--space-1);
-    padding: 0 var(--space-3);
-    color: var(--gold-300);
-    font-size: var(--step--1);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+  .close,
+  .menuButton,
+  .scrim {
+    display: none;
   }
 
-  .list {
-    flex-direction: column;
+  .content {
+    padding-top: var(--space-7);
   }
 }
