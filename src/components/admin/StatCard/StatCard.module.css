@@ -6,16 +6,37 @@
   background: var(--white);
   border: 1px solid var(--line);
   border-top: 3px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 1px 2px rgb(var(--chocolate-900-rgb) / 0.04);
   color: var(--text);
   text-decoration: none;
+  transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
 }
 
 a.card:hover {
   border-top-color: var(--gold-500);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-card);
 }
 
 .card[data-highlight] {
   border-top-color: var(--gold-500);
+}
+
+.icon {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  margin-bottom: var(--space-3);
+  border-radius: 8px;
+  background: var(--plaster);
+  color: var(--chocolate-800);
+}
+
+.card[data-highlight] .icon {
+  background: var(--gold-500);
+  color: var(--chocolate-900);
 }
 
 .value {
