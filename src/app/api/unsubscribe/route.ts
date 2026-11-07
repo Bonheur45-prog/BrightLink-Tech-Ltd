@@ -50,11 +50,11 @@ const TOKEN = /^[A-Za-z0-9_-]{10,64}$/;
 function page(lang: Lang, body: string, status = 200) {
   const t = T[lang];
   const html = `<!doctype html><html lang="${lang}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>${esc(t.title)} — BrightLink</title>
-<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f4efe9;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#2b1d14}
-.card{max-width:28rem;margin:1rem;padding:2rem;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(43,29,20,.08)}
-img{width:150px;height:auto;margin-bottom:1.5rem}h1{font-size:1.4rem;margin:0 0 .75rem}p{line-height:1.6;color:#4a3b30}
-button{margin-top:.5rem;padding:.8rem 1.4rem;border:0;border-radius:10px;background:#ff8e00;color:#2b1d14;font-weight:700;font-size:1rem;cursor:pointer}
-a{color:#c96f00}</style></head><body><main class="card"><img src="/images/brand/brightlink-logo.png" alt="BrightLink"><h1>${esc(t.title)}</h1>${body}<p><a href="/">${esc(t.home)}</a></p></main></body></html>`;
+<style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f3f6fb;font-family:system-ui,-apple-system,Segoe UI,Arial,sans-serif;color:#001a45}
+.card{max-width:28rem;margin:1rem;padding:2rem;background:#fff;border-radius:16px;box-shadow:0 10px 30px rgba(0,26,69,.08)}
+img{width:150px;height:auto;margin-bottom:1.5rem}h1{font-size:1.4rem;margin:0 0 .75rem}p{line-height:1.6;color:#2a3f66}
+button{margin-top:.5rem;padding:.8rem 1.4rem;border:0;border-radius:10px;background:#ff8e00;color:#001a45;font-weight:700;font-size:1rem;cursor:pointer}
+a{color:#a85d00}</style></head><body><main class="card"><img src="/images/brand/brightlink-logo.png" alt="BrightLink"><h1>${esc(t.title)}</h1>${body}<p><a href="/">${esc(t.home)}</a></p></main></body></html>`;
   return new NextResponse(html, { status, headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store', 'X-Robots-Tag': 'noindex' } });
 }
 
