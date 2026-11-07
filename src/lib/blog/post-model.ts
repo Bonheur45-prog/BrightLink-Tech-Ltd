@@ -14,6 +14,8 @@ export type PostPayload = {
   coverMediaId: string | null;
   tags: string[];
   featured: boolean;
+  /** Email the article to the subscribers when it goes live (once). */
+  emailSubscribers: boolean;
   /** ISO date; in the future = scheduled. Empty = now, on first publish. */
   publishedAt: string | null;
   focusKeyword: string;
@@ -85,6 +87,7 @@ export function validatePost(raw: unknown): { ok: true; data: PostPayload } | { 
       coverMediaId: typeof o.coverMediaId === 'string' && ID.test(o.coverMediaId) ? o.coverMediaId : null,
       tags,
       featured: o.featured === true,
+      emailSubscribers: o.emailSubscribers !== false,
       publishedAt,
       focusKeyword: str(o.focusKeyword, 80),
       canonicalUrl,

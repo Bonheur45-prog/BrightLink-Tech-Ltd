@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { after } from 'next/server';
 import { redirect } from 'next/navigation';
 import { STARTER_CATEGORIES_RAW } from '@/lib/content/blogDefaults';
 import { locales } from '@/i18n/config';
@@ -13,6 +14,7 @@ import { refreshPublicSite } from '@/lib/cms/revalidate';
 import { inputFrom, type Errors } from '@/lib/cms/settings-validation';
 import { isValidSlug, slugify, uniqueSlug } from '@/lib/cms/slug';
 import { prisma } from '@/lib/db';
+import { sendDueNewsletters } from '@/lib/email/newsletter';
 
 const ID = /^[a-z0-9]{10,40}$/;
 export type PostSaveResult = { ok: true; savedAt: number; slug: string; status: 'DRAFT' | 'PUBLISHED'; publishedAt: string | null } | { ok: false; message: string; errors: Errors };
@@ -81,6 +83,8 @@ export async function savePost(id: string, raw: unknown): Promise<PostSaveResult
   await audit(user.id, 'posts.save', 'posts', id, { status: d.status });
   refreshPublicSite();
   revalidatePath('/admin/blog');
+  // Live now and not emailed yet → email the subscribers after this answer (scheduled ones: src/instrumentation.ts).
+  if (d.status === 'PUBLISHED' && d.emailSubscribers && publishedAt && publishedAt <= new Date()) after(() => sendDueNewsletters());
   return { ok: true, savedAt: Date.now(), slug: d.slug, status: d.status, publishedAt: publishedAt?.toISOString() ?? null };
 }
 

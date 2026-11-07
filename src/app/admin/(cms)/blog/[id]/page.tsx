@@ -37,6 +37,7 @@ export default async function PostPage({ params, searchParams }: { params: Promi
     coverMediaId: post.coverMediaId,
     tags: post.tags,
     featured: post.featured,
+    emailSubscribers: post.emailSubscribers,
     publishedAt: post.publishedAt?.toISOString() ?? null,
     focusKeyword: post.focusKeyword,
     canonicalUrl: post.canonicalUrl,
@@ -54,6 +55,13 @@ export default async function PostPage({ params, searchParams }: { params: Promi
         categories={categories.map((c) => ({ id: c.id, name: c.translations[0]?.name ?? c.slug }))}
         authors={authors}
         media={[...media.values()] as PickedMedia[]}
+        newsletter={{
+          sentAt: post.newsletterSentAt?.toISOString() ?? null,
+          sent: post.newsletterSent,
+          failed: post.newsletterFailed,
+          error: post.newsletterError,
+          subscribers: await prisma.subscriber.count({ where: { active: true } }),
+        }}
       />
     </>
   );

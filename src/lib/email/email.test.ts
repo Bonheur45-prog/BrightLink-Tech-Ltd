@@ -53,3 +53,19 @@ test('SMTP is "not set up" until host, user and password are all there', () => {
   assert.equal(smtpConfig({ SMTP_HOST: 'h', SMTP_USER: 'u', SMTP_PASS: 'p' })?.secure, true); // default port 465 = TLS
   assert.equal(smtpConfig({ SMTP_HOST: 'h', SMTP_USER: 'u', SMTP_PASS: 'p', EMAIL_FROM: 'Site <info@x.rw>' })?.from, 'Site <info@x.rw>');
 });
+
+import { newsletterEmail } from './newsletter-email';
+
+test('newsletter email: escaped, translated, with the unsubscribe link', () => {
+  const article = { title: 'Why <fast> sites win', excerpt: 'Speed & trust.', url: 'https://brightlinkltd.com/fr/blog/fast', imageUrl: 'https://media.brightlinkltd.com/a.webp', category: 'Web', readingMinutes: 4 };
+  const opts = { locale: 'fr' as const, companyName: 'BrightLink', siteUrl: 'https://brightlinkltd.com', logoUrl: 'https://brightlinkltd.com/logo.png', unsubscribeUrl: 'https://brightlinkltd.com/api/unsubscribe?t=abc' };
+  const m = newsletterEmail(article, opts);
+  assert.equal(m.subject, 'Why <fast> sites win');
+  assert.ok(m.html.includes('Why &lt;fast&gt; sites win'));
+  assert.ok(!m.html.includes('<fast>'));
+  assert.ok(m.html.includes('Lire l’article'));
+  assert.ok(m.html.includes('4 min de lecture'));
+  assert.ok(m.html.includes('https://brightlinkltd.com/api/unsubscribe?t=abc'));
+  assert.ok(m.text.includes('Se désabonner: https://brightlinkltd.com/api/unsubscribe?t=abc'));
+  assert.equal(newsletterEmail({ ...article, title: 'a\r\nBcc: x@y.z' }, opts).subject, 'a Bcc: x@y.z');
+});

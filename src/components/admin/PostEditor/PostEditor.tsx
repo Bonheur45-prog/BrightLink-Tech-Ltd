@@ -24,7 +24,21 @@ type Props = {
   categories: { id: string; name: string }[];
   authors: { id: string; name: string }[];
   media: PickedMedia[];
+  /** Where emailing this article to the subscribers stands (from the database). */
+  newsletter: { sentAt: string | null; sent: number; failed: number; error: string | null; subscribers: number };
 };
+
+const dateTime = new Intl.DateTimeFormat('en-GB', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Africa/Kigali' });
+
+/** One line under the "Email to subscribers" box: what happened, or what will happen. */
+function newsletterStatus(n: Props['newsletter'], p: PostPayload): string {
+  if (n.sentAt && (n.sent || n.failed)) return `Emailed to ${n.sent} subscriber${n.sent === 1 ? '' : 's'} on ${dateTime.format(new Date(n.sentAt))}${n.failed ? ` · ${n.failed} failed` : ''}.`;
+  if (n.sentAt) return n.subscribers ? 'Being emailed now…' : 'Published when there were no subscribers yet: nothing was sent.';
+  if (!p.emailSubscribers) return 'This article will not be emailed.';
+  if (!n.subscribers) return 'No subscribers yet.';
+  if (p.status === 'PUBLISHED' && p.publishedAt && new Date(p.publishedAt) > new Date()) return `Will be emailed to ${n.subscribers} subscriber${n.subscribers === 1 ? '' : 's'} when it goes live.`;
+  return `Will be emailed to ${n.subscribers} subscriber${n.subscribers === 1 ? '' : 's'} when you publish it.`;
+}
 
 const time = new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' });
 const emptyT = (): PostT => ({ title: '', excerpt: '', doc: { type: 'doc', content: [] }, metaTitle: '', metaDescription: '', ogMediaId: null });
@@ -50,7 +64,7 @@ function Chooser({ label, value, onChange, media, remember }: { label: string; v
   );
 }
 
-export function PostEditor({ id, initial, locales, categories, authors, media: initialMedia }: Props) {
+export function PostEditor({ id, initial, locales, categories, authors, media: initialMedia, newsletter }: Props) {
   const [p, setP] = useState<PostPayload>(initial);
   const [lang, setLang] = useState<Locale>('en');
   const [dirty, setDirty] = useState(false);
@@ -191,6 +205,19 @@ export function PostEditor({ id, initial, locales, categories, authors, media: i
             <label className={styles.check}>
               <input type="checkbox" checked={p.featured} onChange={(e) => update({ featured: e.target.checked })} /> Featured (shown large at the top of the blog)
             </label>
+            <div className={styles.field}>
+              <label className={styles.check}>
+                <input
+                  type="checkbox"
+                  checked={p.emailSubscribers}
+                  disabled={!!newsletter.sentAt}
+                  onChange={(e) => update({ emailSubscribers: e.target.checked })}
+                />{' '}
+                Email this article to the subscribers
+              </label>
+              <span className={styles.muted}>{newsletterStatus(newsletter, p)}</span>
+              {newsletter.error && <span className={styles.newsletterError}>{newsletter.error}</span>}
+            </div>
           </section>
 
           <section className={styles.box}>

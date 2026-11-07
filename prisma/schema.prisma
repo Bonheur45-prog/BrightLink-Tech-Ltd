@@ -402,6 +402,13 @@ model Post {
   noIndex        Boolean       @default(false)
   /// Set when first published. A date in the future means "scheduled": hidden until then.
   publishedAt    DateTime?
+  /// Email the article to the subscribers once it is live (scheduled articles: when their date comes).
+  emailSubscribers Boolean @default(true)
+  /// Set when the article was emailed (or claimed for sending); never emailed twice.
+  newsletterSentAt DateTime?
+  newsletterSent   Int     @default(0)
+  newsletterFailed Int     @default(0)
+  newsletterError  String?
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
   deletedAt      DateTime?
@@ -463,6 +470,10 @@ model Subscriber {
   email     String   @unique
   source    String   @default("")
   active    Boolean  @default(true)
+  /// Language of the page they subscribed on: new articles are emailed in it when translated.
+  locale    Locale   @default(en)
+  /// Private key in their unsubscribe link (random, set when they subscribe).
+  token     String   @unique @default(cuid())
   createdAt DateTime @default(now())
 }
 
